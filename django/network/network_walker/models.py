@@ -9,8 +9,8 @@ from django.db import models
 # Nodes
 #================================================================================
 
-# NodeType model
-class NodeType( models.Model ):
+# Node_Type model
+class Node_Type( models.Model ):
 
     '''
     Model NodeType holds types of nodes, so you can store many types of
@@ -42,11 +42,11 @@ class NodeType( models.Model ):
         
     #-- END method __unicode__() --#
 
-#-- END NodeType Model --#
+#-- END Node_Type Model --#
 
 
-# NodeTypeAttribute model - attributes that contain traits of a given type.
-class NodeTypeAttribute( models.Model ):
+# Node_Type_Attribute model - attributes that contain traits of a given type.
+class Node_Type_Attribute( models.Model ):
 
     '''
     Model NodeTypeAttribute holds the names and traits of different
@@ -59,7 +59,7 @@ class NodeTypeAttribute( models.Model ):
 
     name = models.CharField( max_length=255 )
     description = models.TextField( blank = True, null = True )
-    node_type = models.ForeignKey( NodeType )
+    node_type = models.ForeignKey( Node_Type )
     
     #----------------------------------------------------------------------
     # methods
@@ -78,11 +78,11 @@ class NodeTypeAttribute( models.Model ):
         
     #-- END method __unicode__() --#
 
-#-- END NodeTypeAttribute Model --#
+#-- END Node_Type_Attribute Model --#
 
 
-# NodeTypeAttributeValidValue - valid values for a given type attribute.
-class NodeTypeAttributeValidValue( models.Model ):
+# Node_Type_Attribute_Valid_Value - valid values for a given type attribute.
+class Node_Type_Attribute_Valid_Value( models.Model ):
 
     '''
     Model NodeTypeAttributeValidValue holds valid values for a given attribute.
@@ -94,7 +94,7 @@ class NodeTypeAttributeValidValue( models.Model ):
     # fields
     #----------------------------------------------------------------------
 
-    node_type_attribute = models.ForeignKey( NodeTypeAttribute )
+    node_type_attribute = models.ForeignKey( Node_Type_Attribute )
     value = models.CharField( max_length=255 )
     description = models.TextField( blank = True, null = True )
 
@@ -116,7 +116,7 @@ class NodeTypeAttributeValidValue( models.Model ):
         
     #-- END method __unicode__() --#
 
-#-- END NodeTypeAttributeValidValue Model --#
+#-- END Node_Type_Attribute_Valid_Value Model --#
 
 
 # Node Model
@@ -132,7 +132,7 @@ class Node( models.Model ):
     # fields
     #----------------------------------------------------------------------
 
-    node_type = models.ForeignKey( NodeType )
+    node_type = models.ForeignKey( Node_Type )
     parent_node = models.ForeignKey( "Node", blank = True, null = True ) # (optional - if present, then this is a group as well as a node)
     original_id = models.CharField( max_length = 255, blank = True, null = True )
     original_table = models.CharField( max_length = 255, blank = True, null = True )
@@ -160,8 +160,8 @@ class Node( models.Model ):
 #-- END Node Model --#
 
 
-# NodeTypeAttributeValue - valid values for a given type.
-class NodeTypeAttributeValue( models.Model ):
+# Node_Type_Attribute_Value - valid values for a given type.
+class Node_Type_Attribute_Value( models.Model ):
 
     '''
     Model NodeTypeAttributeValue is a Model intended to hold the specific values
@@ -173,7 +173,7 @@ class NodeTypeAttributeValue( models.Model ):
     #----------------------------------------------------------------------
 
     node = models.ForeignKey( Node )
-    node_type_attribute = models.ForeignKey( NodeTypeAttribute )
+    node_type_attribute = models.ForeignKey( Node_Type_Attribute )
     value = models.TextField( blank = True, null = True )
     
     #----------------------------------------------------------------------
@@ -193,15 +193,15 @@ class NodeTypeAttributeValue( models.Model ):
         
     #-- END method __unicode__() --#
 
-#-- END NodeTypeAttributeValue Model --#
+#-- END Node_Type_Attribute_Value Model --#
 
 
 #================================================================================
 # Ties
 #================================================================================
 
-# TieType model
-class TieType( models.Model ):
+# Tie_Type model
+class Tie_Type( models.Model ):
 
     '''
     Model TieType holds types of ties, so you can store many types of
@@ -233,11 +233,11 @@ class TieType( models.Model ):
         
     #-- END method __unicode__() --#
 
-#-- END TieType Model --#
+#-- END Tie_Type Model --#
 
 
-# TieTypeAttribute model - attributes that contain traits of a given type.
-class TieTypeAttribute( models.Model ):
+# Tie_Type_Attribute model - attributes that contain traits of a given type.
+class Tie_Type_Attribute( models.Model ):
 
     '''
     Model TieTypeAttribute holds the names and traits of different
@@ -250,7 +250,7 @@ class TieTypeAttribute( models.Model ):
 
     name = models.CharField( max_length=255 )
     description = models.TextField( blank = True, null = True )
-    tie_type = models.ForeignKey( TieType )
+    tie_type = models.ForeignKey( Tie_Type )
     
     #----------------------------------------------------------------------
     # methods
@@ -269,11 +269,11 @@ class TieTypeAttribute( models.Model ):
         
     #-- END method __unicode__() --#
 
-#-- END TieTypeAttribute Model --#
+#-- END Tie_Type_Attribute Model --#
 
 
-# TieTypeAttributeValidValue - valid values for a given type attribute.
-class TieTypeAttributeValidValue( models.Model ):
+# Tie_Type_Attribute_Valid_Value - valid values for a given type attribute.
+class Tie_Type_Attribute_Valid_Value( models.Model ):
 
     '''
     Model TieTypeAttributeValidValue holds valid values for a given attribute.
@@ -285,7 +285,7 @@ class TieTypeAttributeValidValue( models.Model ):
     # fields
     #----------------------------------------------------------------------
 
-    tie_type_attribute = models.ForeignKey( TieTypeAttribute )
+    tie_type_attribute = models.ForeignKey( Tie_Type_Attribute )
     value = models.CharField( max_length=255 )
     description = models.TextField( blank = True, null = True )
 
@@ -307,7 +307,7 @@ class TieTypeAttributeValidValue( models.Model ):
         
     #-- END method __unicode__() --#
 
-#= END TieTypeAttributeValidValue Model ========================================================
+#= END Tie_Type_Attribute_Valid_Value Model ========================================================
 
 
 # Tie Model
@@ -323,12 +323,12 @@ class Tie( models.Model ):
     # fields
     #----------------------------------------------------------------------
 
-    tie_type = models.ForeignKey( TieType )
+    tie_type = models.ForeignKey( Tie_Type )
     original_id = models.CharField( max_length = 255, blank = True, null = True )
     original_table = models.CharField( max_length = 255, blank = True, null = True )
     description = models.TextField( blank = True, null = True )
-    from_node = models.ForeignKey( Node )
-    to_node = models.ForeignKey( Node )
+    from_node = models.ForeignKey( Node, related_name = "ties_out" )
+    to_node = models.ForeignKey( Node, related_name = "ties_in" )
     directed = models.BooleanField( 'Is Directed?', default = True )
     #more to come
 
@@ -353,8 +353,8 @@ class Tie( models.Model ):
 #= END Tie Model ========================================================
 
 
-# TieTypeAttributeValue - valid values for a given type.
-class TieTypeAttributeValue( models.Model ):
+# Tie_Type_Attribute_Value - valid values for a given type.
+class Tie_Type_Attribute_Value( models.Model ):
 
     '''
     Model TieTypeAttributeValue is a Model intended to hold the specific values
@@ -366,7 +366,7 @@ class TieTypeAttributeValue( models.Model ):
     #----------------------------------------------------------------------
 
     node = models.ForeignKey( Node )
-    node_type_attribute = models.ForeignKey( NodeTypeAttribute )
+    node_type_attribute = models.ForeignKey( Node_Type_Attribute )
     value = models.TextField( blank = True, null = True )
     
     #----------------------------------------------------------------------
@@ -386,4 +386,4 @@ class TieTypeAttributeValue( models.Model ):
         
     #-- END method __unicode__() --#
 
-#= END TieTypeAttributeValue Model ========================================================
+#= END Tie_Type_Attribute_Value Model ========================================================
