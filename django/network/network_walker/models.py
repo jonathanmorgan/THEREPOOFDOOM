@@ -133,7 +133,7 @@ class Node( models.Model ):
     #----------------------------------------------------------------------
 
     node_type = models.ForeignKey( NodeType )
-    parent_node = models.ForeignKey( Node, blank = True, null = True ) # (optional - if present, then this is a group as well as a node)
+    parent_node = models.ForeignKey( "Node", blank = True, null = True ) # (optional - if present, then this is a group as well as a node)
     original_id = models.CharField( max_length = 255, blank = True, null = True )
     original_table = models.CharField( max_length = 255, blank = True, null = True )
     description = models.TextField( blank = True, null = True )
