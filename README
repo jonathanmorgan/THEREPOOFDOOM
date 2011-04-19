@@ -1,2 +1,15 @@
 THEREPOOFDOOM!!!
 This is going to be great.  More details to come.
+
+=================================================================================
+Installing Network Builder
+=================================================================================
+
+For now, just have classes/models that hold network information pre-query.
+
+To install:
+- install and configure django to talk with a database (http://docs.djangoproject.com/en/dev/intro/tutorial01/).
+- grab the django folder from this repo.
+- install and configure the network site (settings-anon.py has a barebones install except for your database information), or install the network_builder application in your existing site.
+- use manage.py to load the attribute types fixtures (python manage.py loaddata attribute_type.json).
+- play (and hope it doesn't break!).
