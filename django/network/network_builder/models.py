@@ -44,6 +44,67 @@ class Attribute_Type( models.Model ):
 #-- END Attribute_Type Model --#
 
 
+# Dated_Model abstract model
+class Dated_Model( models.Model ):
+
+    '''
+    Dated_Model implements a date field and date range start and end date
+       fields.  Not sure which of these will be needed where, but will make
+       node, tie, and node and tie attribute values classes extend so each
+       of these can be dated, and so dates can be used to pull in nodes,
+       ties, or attribute values for a date or a date range.
+    '''
+
+    date = models.DateTimeField( blank = True, null = True )
+    date_range_start = models.DateTimeField( blank = True, null = True )
+    date_range_end = models.DateTimeField( blank = True, null = True )
+    create_date = models.DateTimeField( auto_now_add = True )
+    last_update = models.DateTimeField( auto_now = True )
+
+    # meta class so we know this is an abstract class.
+    class Meta:
+        abstract = True
+
+    #----------------------------------------------------------------------
+    # methods
+    #----------------------------------------------------------------------
+
+
+    def __unicode__( self ):
+        
+        # return reference
+        string_OUT = ''
+        prefix = ""
+        
+        string_OUT = self.id
+        prefix = " - "
+        
+        if ( self.date ):
+            string_OUT = prefix + "date: " + self.date.strftime( "%b %d, %Y" )
+            prefix = ", "
+            
+        #-- END check for date field --#
+            
+        if ( self.range_start_date ):
+            string_OUT = prefix + "range start date: " + self.range_start_date.strftime( "%b %d, %Y" )
+            prefix = ", "
+            
+        #-- END check for range_start_date field --#
+
+        if ( self.range_end_date ):
+            string_OUT = prefix + "range end date: " + self.range_end_date.strftime( "%b %d, %Y" )
+            prefix = ", "
+            
+        #-- END check for range_end_date field --#
+
+        return string_OUT
+        
+    #-- END __unicode__() method --#
+        
+
+#= END Article_Person Model ======================================================
+
+
 #================================================================================
 # Nodes
 #================================================================================
@@ -160,7 +221,7 @@ class Node_Type_Attribute_Valid_Value( models.Model ):
 
 
 # Node Model
-class Node( models.Model ):
+class Node( Dated_Model ):
 
     '''
     Model Node is the base model for holding information on nodes.  Info. common
@@ -201,7 +262,7 @@ class Node( models.Model ):
 
 
 # Node_Type_Attribute_Value - valid values for a given type.
-class Node_Type_Attribute_Value( models.Model ):
+class Node_Type_Attribute_Value( Dated_Model ):
 
     '''
     Model NodeTypeAttributeValue is a Model intended to hold the specific values
@@ -352,7 +413,7 @@ class Tie_Type_Attribute_Valid_Value( models.Model ):
 
 
 # Tie Model
-class Tie( models.Model ):
+class Tie( Dated_Model ):
 
     '''
     Model Tie is the base model for holding information on ties.  Info. common
@@ -395,7 +456,7 @@ class Tie( models.Model ):
 
 
 # Tie_Type_Attribute_Value - valid values for a given type.
-class Tie_Type_Attribute_Value( models.Model ):
+class Tie_Type_Attribute_Value( Dated_Model ):
 
     '''
     Model TieTypeAttributeValue is a Model intended to hold the specific values
