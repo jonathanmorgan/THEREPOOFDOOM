@@ -3,7 +3,46 @@ from django.db import models
 # Create your models here.
 # TODO - Add time stamps where appropriate (at least Node, Tie).
 # TODO - Add table to hold network query inputs for some or all attempts to
-#    build a network, so you can reprodice later on.
+#    build a network, so you can reproduce later on.
+
+
+# Attribute_Type model
+class Attribute_Type( models.Model ):
+
+    '''
+    Model Attribute_Type holds types of attributes, for use in allowing
+       people to select against them when building networks.  This is a
+       basic one - the types will be stuff like string, date, datetime,
+       integer, real, etc.  I will probably make a fixture for this file,
+       so it is automatically populated.
+    '''
+
+    #----------------------------------------------------------------------
+    # fields
+    #----------------------------------------------------------------------
+
+    name = models.CharField( max_length=255 )
+    description = models.TextField( blank = True, null = True )
+
+    #----------------------------------------------------------------------
+    # methods
+    #----------------------------------------------------------------------
+
+
+    def __unicode__( self ):
+
+        # return reference
+        string_OUT = ''
+
+        # declare variables
+        string_OUT = str( self.id ) + " - " + self.name
+        
+        return string_OUT
+        
+    #-- END method __unicode__() --#
+
+#-- END Attribute_Type Model --#
+
 
 #================================================================================
 # Nodes
@@ -60,6 +99,7 @@ class Node_Type_Attribute( models.Model ):
     name = models.CharField( max_length=255 )
     description = models.TextField( blank = True, null = True )
     node_type = models.ForeignKey( Node_Type )
+    attribute_type = models.ForeignKey( Attribute_Type )
     
     #----------------------------------------------------------------------
     # methods
@@ -251,6 +291,7 @@ class Tie_Type_Attribute( models.Model ):
     name = models.CharField( max_length=255 )
     description = models.TextField( blank = True, null = True )
     tie_type = models.ForeignKey( Tie_Type )
+    attribute_type = models.ForeignKey( Attribute_Type )
     
     #----------------------------------------------------------------------
     # methods

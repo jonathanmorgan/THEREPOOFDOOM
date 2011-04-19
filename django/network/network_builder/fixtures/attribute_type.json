@@ -1,0 +1,58 @@
+[
+    {
+        "pk": 1, 
+        "model": "network_builder.attribute_type", 
+        "fields": {
+            "name": "text", 
+            "description": "Any text value."
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "network_builder.attribute_type", 
+        "fields": {
+            "name": "date", 
+            "description": "Just a date."
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "network_builder.attribute_type", 
+        "fields": {
+            "name": "time", 
+            "description": "Just a time."
+        }
+    }, 
+    {
+        "pk": 4, 
+        "model": "network_builder.attribute_type", 
+        "fields": {
+            "name": "datetime", 
+            "description": "Both a date and a time."
+        }
+    }, 
+    {
+        "pk": 5, 
+        "model": "network_builder.attribute_type", 
+        "fields": {
+            "name": "integer", 
+            "description": "Integer, positive or negative."
+        }
+    }, 
+    {
+        "pk": 6, 
+        "model": "network_builder.attribute_type", 
+        "fields": {
+            "name": "float", 
+            "description": "Decimal number."
+        }
+    }, 
+    {
+        "pk": 7, 
+        "model": "network_builder.attribute_type", 
+        "fields": {
+            "name": "boolean", 
+            "description": "Boolean - true or false."
+        }
+    }
+]
