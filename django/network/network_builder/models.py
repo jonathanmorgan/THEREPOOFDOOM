@@ -316,6 +316,7 @@ class Tie_Type( models.Model ):
 
     name = models.CharField( max_length=255 )
     description = models.TextField( blank = True, null = True )
+    directed = models.BooleanField( 'Is Directed?', default = True )
 
     #----------------------------------------------------------------------
     # methods
