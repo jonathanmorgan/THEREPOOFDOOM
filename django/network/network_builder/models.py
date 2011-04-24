@@ -430,9 +430,10 @@ class Tie( Dated_Model ):
     original_id = models.CharField( max_length = 255, blank = True, null = True )
     original_table = models.CharField( max_length = 255, blank = True, null = True )
     description = models.TextField( blank = True, null = True )
-    from_node = models.ForeignKey( Node, related_name = "ties_out" )
-    to_node = models.ForeignKey( Node, related_name = "ties_in" )
+    from_node = models.ForeignKey( Node, related_name = "ties_out_set" )
+    to_node = models.ForeignKey( Node, related_name = "ties_in_set" )
     directed = models.BooleanField( 'Is Directed?', default = True )
+    valid_node_types = models.ManyToManyField( Node_Type, blank = True, null = True )
     #more to come
 
     
