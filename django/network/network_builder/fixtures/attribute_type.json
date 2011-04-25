@@ -3,7 +3,8 @@
         "pk": 1, 
         "model": "network_builder.attribute_type", 
         "fields": {
-            "name": "text", 
+        	"label" : "text"
+            "name": "Text",
             "description": "Any text value."
         }
     }, 
@@ -11,7 +12,8 @@
         "pk": 2, 
         "model": "network_builder.attribute_type", 
         "fields": {
-            "name": "date", 
+            "label": "date", 
+            "name": "Date", 
             "description": "Just a date."
         }
     }, 
@@ -19,7 +21,8 @@
         "pk": 3, 
         "model": "network_builder.attribute_type", 
         "fields": {
-            "name": "time", 
+            "label": "time", 
+            "name": "Time", 
             "description": "Just a time."
         }
     }, 
@@ -27,7 +30,8 @@
         "pk": 4, 
         "model": "network_builder.attribute_type", 
         "fields": {
-            "name": "datetime", 
+            "label": "datetime", 
+            "name": "Date-Time", 
             "description": "Both a date and a time."
         }
     }, 
@@ -35,7 +39,8 @@
         "pk": 5, 
         "model": "network_builder.attribute_type", 
         "fields": {
-            "name": "integer", 
+            "label": "integer", 
+            "name": "Integer", 
             "description": "Integer, positive or negative."
         }
     }, 
@@ -43,7 +48,8 @@
         "pk": 6, 
         "model": "network_builder.attribute_type", 
         "fields": {
-            "name": "float", 
+            "label": "float", 
+            "name": "Float", 
             "description": "Decimal number."
         }
     }, 
@@ -51,7 +57,8 @@
         "pk": 7, 
         "model": "network_builder.attribute_type", 
         "fields": {
-            "name": "boolean", 
+            "label": "boolean", 
+            "name": "Boolean", 
             "description": "Boolean - true or false."
         }
     }
