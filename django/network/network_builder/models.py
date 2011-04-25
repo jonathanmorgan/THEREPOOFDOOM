@@ -1,28 +1,33 @@
 from django.db import models
 
-# Create your models here.
-# TODO - Add time stamps where appropriate (at least Node, Tie).
 # TODO - Add table to hold network query inputs for some or all attempts to
 #    build a network, so you can reproduce later on.
 
+#===============================================================================
+# Abstract Models
+#===============================================================================
 
-# Attribute_Type model
-class Attribute_Type( models.Model ):
+
+# Labeled_Model abstract model
+class Labeled_Model( models.Model ):
 
     '''
-    Model Attribute_Type holds types of attributes, for use in allowing
-       people to select against them when building networks.  This is a
-       basic one - the types will be stuff like string, date, datetime,
-       integer, real, etc.  I will probably make a fixture for this file,
-       so it is automatically populated.
+    Labeled_Model implements a label (intended to have no space), a name
+       field, and a description field.  Many models have these fields
+       together, so figured I'd just plunk them all in one place.
     '''
 
     #----------------------------------------------------------------------
     # fields
     #----------------------------------------------------------------------
 
-    name = models.CharField( max_length=255 )
+    label = models.CharField( max_length = 255 )
+    name = models.CharField( max_length = 255 )
     description = models.TextField( blank = True, null = True )
+
+    # meta class so we know this is an abstract class.
+    class Meta:
+        abstract = True
 
     #----------------------------------------------------------------------
     # methods
@@ -35,13 +40,13 @@ class Attribute_Type( models.Model ):
         string_OUT = ''
 
         # declare variables
-        string_OUT = str( self.id ) + " - " + self.name
+        string_OUT = str( self.id ) + " - " + self.name + " ( " + self.label + " )"
         
         return string_OUT
         
     #-- END method __unicode__() --#
 
-#-- END Attribute_Type Model --#
+#= END Labeled_Model Abstract Model ============================================
 
 
 # Dated_Model abstract model
@@ -102,51 +107,52 @@ class Dated_Model( models.Model ):
     #-- END __unicode__() method --#
         
 
-#= END Article_Person Model ======================================================
+#= END Dated_Model Abstract Model ==============================================
 
 
-#================================================================================
-# Nodes
-#================================================================================
+#===============================================================================
+# Shared Models
+#===============================================================================
+
+
+# Attribute_Type model
+class Attribute_Type( Labeled_Model ):
+
+    '''
+    Model Attribute_Type holds types of attributes, for use in allowing
+       people to select against them when building networks.  This is a
+       basic one - the types will be stuff like string, date, datetime,
+       integer, real, etc.  I will probably make a fixture for this file,
+       so it is automatically populated.  For now, this is entirely inherited
+       from Labeled_Model.
+    '''
+
+#-- END Attribute_Type Model --#
+
+
+#===============================================================================
+# Node Models
+#===============================================================================
 
 # Node_Type model
-class Node_Type( models.Model ):
+class Node_Type( Labeled_Model ):
 
     '''
     Model NodeType holds types of nodes, so you can store many types of
        nodes in one node table, differentiating between them by their
-       types.
+       types.  Entirely inherited from Labeled_Model at the moment.
     '''
 
-    #----------------------------------------------------------------------
-    # fields
-    #----------------------------------------------------------------------
-
-    name = models.CharField( max_length=255 )
-    description = models.TextField( blank = True, null = True )
-
-    #----------------------------------------------------------------------
-    # methods
-    #----------------------------------------------------------------------
-
-
-    def __unicode__( self ):
-
-        # return reference
-        string_OUT = ''
-
-        # declare variables
-        string_OUT = str( self.id ) + " - " + self.name
-        
-        return string_OUT
-        
-    #-- END method __unicode__() --#
+    # Inherited from Labeled_Model
+    #label = models.CharField( max_length = 255 )
+    #name = models.CharField( max_length = 255 )
+    #description = models.TextField( blank = True, null = True )
 
 #-- END Node_Type Model --#
 
 
 # Node_Type_Attribute model - attributes that contain traits of a given type.
-class Node_Type_Attribute( models.Model ):
+class Node_Type_Attribute( Labeled_Model ):
 
     '''
     Model NodeTypeAttribute holds the names and traits of different
@@ -157,8 +163,10 @@ class Node_Type_Attribute( models.Model ):
     # fields
     #----------------------------------------------------------------------
 
-    name = models.CharField( max_length=255 )
-    description = models.TextField( blank = True, null = True )
+    # Inherited from Labeled_Model
+    #label = models.CharField( max_length = 255 )
+    #name = models.CharField( max_length = 255 )
+    #description = models.TextField( blank = True, null = True )
     node_type = models.ForeignKey( Node_Type )
     attribute_type = models.ForeignKey( Attribute_Type )
     
@@ -166,7 +174,7 @@ class Node_Type_Attribute( models.Model ):
     # methods
     #----------------------------------------------------------------------
 
-
+    '''
     def __unicode__( self ):
 
         # return reference
@@ -178,6 +186,7 @@ class Node_Type_Attribute( models.Model ):
         return string_OUT
         
     #-- END method __unicode__() --#
+    '''
 
 #-- END Node_Type_Attribute Model --#
 
@@ -298,11 +307,11 @@ class Node_Type_Attribute_Value( Dated_Model ):
 
 
 #================================================================================
-# Ties
+# Tie Models
 #================================================================================
 
 # Tie_Type model
-class Tie_Type( models.Model ):
+class Tie_Type( Labeled_Model ):
 
     '''
     Model TieType holds types of ties, so you can store many types of
@@ -314,15 +323,18 @@ class Tie_Type( models.Model ):
     # fields
     #----------------------------------------------------------------------
 
-    name = models.CharField( max_length=255 )
-    description = models.TextField( blank = True, null = True )
+    # Inherited from Labeled_Model
+    #label = models.CharField( max_length = 255 )
+    #name = models.CharField( max_length = 255 )
+    #description = models.TextField( blank = True, null = True )
+
     directed = models.BooleanField( 'Is Directed?', default = True )
 
     #----------------------------------------------------------------------
     # methods
     #----------------------------------------------------------------------
 
-
+    '''
     def __unicode__( self ):
 
         # return reference
@@ -334,12 +346,13 @@ class Tie_Type( models.Model ):
         return string_OUT
         
     #-- END method __unicode__() --#
+    '''
 
 #-- END Tie_Type Model --#
 
 
 # Tie_Type_Attribute model - attributes that contain traits of a given type.
-class Tie_Type_Attribute( models.Model ):
+class Tie_Type_Attribute( Labeled_Model ):
 
     '''
     Model TieTypeAttribute holds the names and traits of different
@@ -350,8 +363,11 @@ class Tie_Type_Attribute( models.Model ):
     # fields
     #----------------------------------------------------------------------
 
-    name = models.CharField( max_length=255 )
-    description = models.TextField( blank = True, null = True )
+    # Inherited from Labeled_Model
+    #label = models.CharField( max_length = 255 )
+    #name = models.CharField( max_length = 255 )
+    #description = models.TextField( blank = True, null = True )
+
     tie_type = models.ForeignKey( Tie_Type )
     attribute_type = models.ForeignKey( Attribute_Type )
     
@@ -359,7 +375,7 @@ class Tie_Type_Attribute( models.Model ):
     # methods
     #----------------------------------------------------------------------
 
-
+    '''
     def __unicode__( self ):
 
         # return reference
@@ -371,6 +387,7 @@ class Tie_Type_Attribute( models.Model ):
         return string_OUT
         
     #-- END method __unicode__() --#
+    '''
 
 #-- END Tie_Type_Attribute Model --#
 
