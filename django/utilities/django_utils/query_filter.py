@@ -13,6 +13,8 @@ if __name__ == "__main__":
 # imports (in alphabetical order by package, then by name)
 #===============================================================================
 
+# Python base modules
+#import logging
 
 class QueryFilterHelper():
 
@@ -116,15 +118,15 @@ class QueryFilterHelper():
         # Declare variables
         my_queryset = None
         
-        # make sure we have a field name and either a start or an end date.
-        if ( ( date_field_name_IN ) and ( ( start_date_IN ) or ( end_date_IN ) ) ):
+        # make sure we have a QuerySet.
+        my_queryset = self.queryset
         
-            # we do have enough info.  Get QuerySet.
-            my_queryset = self.queryset
+        # got a queryset?
+        if ( my_queryset ):
             
-            # got a queryset?
-            if ( my_queryset ):
-            
+            # make sure we have a field name and either a start or an end date.
+            if ( ( date_field_name_IN ) and ( ( start_date_IN ) or ( end_date_IN ) ) ):
+        
                 # got both dates?
                 if ( ( start_date_IN ) and ( end_date_IN ) ):
                 
@@ -134,6 +136,9 @@ class QueryFilterHelper():
                     filter_params[ date_field_name_IN + "__range" ] = ( start_date_IN, end_date_IN )
                     my_queryset = my_queryset.filter( **filter_params )
                     
+                    # store updated QuerySet
+                    self.queryset = my_queryset
+                    
                 elif ( start_date_IN ):
                 
                     # just start date - do gte
@@ -141,6 +146,9 @@ class QueryFilterHelper():
                     filter_params = {}
                     filter_params[ date_field_name_IN + "__gte" ] = start_date_IN
                     my_queryset = my_queryset.filter( **filter_params )
+                    
+                    # store updated QuerySet
+                    self.queryset = my_queryset
                     
                 elif ( end_date_IN ):
                 
@@ -150,15 +158,15 @@ class QueryFilterHelper():
                     filter_params[ date_field_name_IN + "__lte" ] = end_date_IN
                     my_queryset = my_queryset.filter( **filter_params )
                     
+                    # store updated QuerySet
+                    self.queryset = my_queryset
+                    
                 #-- END conditional over date range values.
-            
-            #-- END check to see if we have a queryset --#
                 
-        #-- END check to see if we have enough info. to filter. --#
+            #-- END check to see if we have enough info. to filter. --#
         
-        # store new QuerySet in instance
-        self.queryset = my_queryset
-        
+        #-- END check to see if we have a queryset --#
+
         # return it also
         queryset_OUT = self.queryset
         
@@ -194,29 +202,26 @@ class QueryFilterHelper():
         # Declare variables
         my_queryset = None
         
-        # make sure we have a List.
-        if ( ( order_by_list_IN ) and ( len( order_by_list_IN ) > 0 ) ):
+        # make sure we have a QuerySet.
+        my_queryset = self.queryset
+        if ( my_queryset ):
         
-            # we do have a List.  Get QuerySet.
-            my_queryset = self.queryset
-            
-            # got a queryset?
-            if ( my_queryset ):
-            
+            # Got a list?       
+            if ( ( order_by_list_IN ) and ( len( order_by_list_IN ) > 0 ) ):
+        
                 # add the order_by values.
-                my_queryset.order_by( *order_by_list_IN )                
-            
-            #-- END check to see if we have a queryset --#
-            
-        else:
-        
-            # nothing passed in, so empty out order_by.
-            my_queryset.order_by()
+                my_queryset = my_queryset.order_by( *order_by_list_IN )
                 
-        #-- END check to see if we have enough info. to filter. --#
-        
-        # store new QuerySet in instance
-        self.queryset = my_queryset
+            else:
+            
+                # nothing passed in, so empty out order_by.
+                my_queryset = my_queryset.order_by()
+                    
+            #-- END check to see if we have enough info. to filter. --#
+            
+            self.queryset = my_queryset
+            
+        #-- END check to make sure we have a QuerySet.
         
         # return it also
         queryset_OUT = self.queryset
