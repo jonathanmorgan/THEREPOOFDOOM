@@ -47,6 +47,42 @@ class QueryFilterHelper():
 
 
     #---------------------------------------------------------------------------
+    # properties, in alphabetical order
+    #---------------------------------------------------------------------------
+
+
+    def get_queryset( self ):
+    
+        '''
+        Returns QuerySet stored in internal instance variable.
+        ''' 
+        
+        # return reference
+        value_OUT = None
+        
+        value_OUT = self.m_queryset
+        
+        return value_OUT
+    
+    #-- END add_date_filter() --#
+
+
+    def set_queryset( self, value_IN ):
+    
+        '''
+        Accepts and stores QuerySet in internal instance variable.
+        ''' 
+        
+        # return reference
+        self.m_queryset = value_IN
+    
+    #-- END add_date_filter() --#
+
+
+    queryset = property( get_queryset, set_queryset )
+
+
+    #---------------------------------------------------------------------------
     # instance methods, in alphabetical order
     #---------------------------------------------------------------------------
 
@@ -69,6 +105,9 @@ class QueryFilterHelper():
         - date_field_name_IN - String field name of date field we are filtering on.
         - start_date_IN - datetime.datetime instance that contains the start date and time from which we want to start filtering.  If empty, does not specify a start date.
         - end_date_IN - datetime.datetime instance that contains the end date and time at which we want to end filtering.  If empty, goes to present.           
+
+        Returns:
+        - QuerySet - updated QuerySet, also stored in the instance.
         '''
         
         # return reference
@@ -128,40 +167,63 @@ class QueryFilterHelper():
     #-- END add_date_filter() --#
 
 
-    def get_queryset( self ):
+    def set_order_by( self, order_by_list_IN ):
     
         '''
-        Returns QuerySet stored in internal instance variable.
-        ''' 
+        Accepts List of string order by directives that we want to place on the
+           nested QuerySet.  Adds them in the order they are listed in the List.
+           For more details, see:
+           http://docs.djangoproject.com/en/dev/ref/models/querysets/#order-by
+           If empty list or None passed in, clears out the order_by.
+           
+        Preconditions: assumes that there is a QuerySet nested in the instance.
         
-        # return reference
-        value_OUT = None
-        
-        value_OUT = self.m_queryset
-        
-        return value_OUT
-    
-    #-- END add_date_filter() --#
+        Postconditions: replaces existing QuerySet with newly ordered one at
+           conclusion of execution.
+           
+        Parameters:
+        - order_by_list_IN - List of string order by directives that we want to place on the nested QuerySet, in the order we want them.  If empty list or None passed in, clears out the order_by.
 
-
-    def set_queryset( self, value_IN ):
-    
+        Returns:
+        - QuerySet - updated QuerySet, also stored in the instance.
         '''
-        Accepts and stores QuerySet in internal instance variable.
-        ''' 
         
         # return reference
-        self.m_queryset = value_IN
+        queryset_OUT = None
+        
+        # Declare variables
+        my_queryset = None
+        
+        # make sure we have a List.
+        if ( ( order_by_list_IN ) and ( len( order_by_list_IN ) > 0 ) ):
+        
+            # we do have a List.  Get QuerySet.
+            my_queryset = self.queryset
+            
+            # got a queryset?
+            if ( my_queryset ):
+            
+                # add the order_by values.
+                my_queryset.order_by( *order_by_list_IN )                
+            
+            #-- END check to see if we have a queryset --#
+            
+        else:
+        
+            # nothing passed in, so empty out order_by.
+            my_queryset.order_by()
+                
+        #-- END check to see if we have enough info. to filter. --#
+        
+        # store new QuerySet in instance
+        self.queryset = my_queryset
+        
+        # return it also
+        queryset_OUT = self.queryset
+        
+        return queryset_OUT
     
-    #-- END add_date_filter() --#
-
-
-    #---------------------------------------------------------------------------
-    # properties, in alphabetical order
-    #---------------------------------------------------------------------------
-
-
-    queryset = property( get_queryset, set_queryset )
+    #-- END set_order_by() --#
 
 
 #-- END class QueryFilterHelper --#
