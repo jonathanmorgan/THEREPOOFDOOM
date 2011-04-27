@@ -29,7 +29,12 @@ class QueryFilterHelper():
 
 
     # names of parameters
-    
+    PARAM_ORDER_BY = "order_by"
+
+    # more specific parameters - date params
+    PARAM_DATE_COLUMN = "date_column"
+    PARAM_START_DATE = "start_date"
+    PARAM_END_DATE = "end_date"
 
 
     #---------------------------------------------------------------------------
@@ -173,6 +178,92 @@ class QueryFilterHelper():
         return queryset_OUT
     
     #-- END add_date_filter() --#
+
+
+    def configure_query_set( self, param_hash_IN ):
+    
+        '''
+        Accepts a parameter hash that contains a QuerySet instance, an optional
+           date column name and start and/or end date, and an optional order_by
+           list.  Applies the filter, sort, and order by parameters to the
+           QuerySet passed in, then returns the QuerySet.
+        
+        Params (stored in a param hash):
+        - date_column_name_IN - String name of date column we want to filter on.
+        - start_date_IN - datetime.datetime instance that contains the start date and time from which we want to start counting.  If empty, does not specify a start date.
+        - end_date_IN - datetime.datetime instance that contains the end date and time at which we want to end counting.  If empty, goes to present.
+        - order_by_IN - order_by items to pass to django order_by method.
+        
+        Returns:
+        - QuerySet - QuerySet instance of writeups that fit parameters.
+        '''
+        
+        # return reference
+        value_OUT = -1
+        
+        # declare variables
+        date_column_name_IN = ""
+        start_date_IN = None
+        end_date_IN = None
+        order_by_IN = None
+        writeup_queryset = None
+        filter_params = None
+        
+        # check for input parameters
+        if ( param_hash_IN ):
+        
+            # got something.  See if there are parameters inside.
+            # date column
+            if ( QueryFilterHelper.PARAM_DATE_COLUMN in param_hash_IN ):
+            
+                # we have a date column name.
+                date_column_name_IN = param_hash_IN[ QueryFilterHelper.PARAM_DATE_COLUMN ]
+                
+            #-- END check to see if date column name --#
+            
+            # start date
+            if ( QueryFilterHelper.PARAM_START_DATE in param_hash_IN ):
+            
+                # we have a start date.
+                start_date_IN = param_hash_IN[ QueryFilterHelper.PARAM_START_DATE ]
+                
+            #-- END check for start date --#
+        
+            # end date.
+            if ( QueryFilterHelper.PARAM_END_DATE in param_hash_IN ):
+            
+                # we have a end date.
+                end_date_IN = param_hash_IN[ QueryFilterHelper.PARAM_END_DATE ]
+                
+            #-- END check for end date --#
+            
+            # order by
+            if ( QueryFilterHelper.PARAM_ORDER_BY in param_hash_IN ):
+                
+                # we have an order-by list
+                order_by_IN = param_hash_IN[ QueryFilterHelper.PARAM_ORDER_BY ]
+                
+            #-- END check for order by parameter --#
+
+        #-- END check for input parameters --#
+        
+        # filter on start or end dates?
+        self.add_date_filter( date_column_name_IN, start_date_IN, end_date_IN )
+        
+        # got an order_by?
+        if ( order_by_IN ):
+            
+            # yes, we have one - process it.
+            self.set_order_by( order_by_IN )
+            
+        #-- END check to see if we have an order by. --#
+        
+        # return query set.
+        value_OUT = self.queryset
+        
+        return value_OUT        
+    
+    #-- END configure_query_set() method --#
 
 
     def set_order_by( self, order_by_list_IN ):
