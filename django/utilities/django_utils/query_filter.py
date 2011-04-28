@@ -35,6 +35,9 @@ class QueryFilterHelper():
     PARAM_DATE_COLUMN = "date_column"
     PARAM_START_DATE = "start_date"
     PARAM_END_DATE = "end_date"
+    
+    # param for primary key =
+    PARAM_PRIMARY_KEY_LIST = "primary_key_list"
 
 
     #---------------------------------------------------------------------------
@@ -180,6 +183,69 @@ class QueryFilterHelper():
     #-- END add_date_filter() --#
 
 
+    def add_pk_filter( self, primary_key_list_IN ):
+    
+        '''
+        Accepts primary key value.  Adds filter condition to filter based on
+           primary key list passed in.  If single value, adds "pk = ".  If list,
+           adds "pk__in=[]" filter.
+           
+        Preconditions: assumes that there is a QuerySet nested in the instance.
+        
+        Postconditions: replaces existing QuerySet with newly filtered one at
+           conclusion of execution.
+           
+        Parameters:
+        - primary_key_list_IN - List of primary key values that we want to use to filter the nested QuerySet.  If empty list or None passed in, does nothing.
+
+        Returns:
+        - QuerySet - updated QuerySet, also stored in the instance.
+        '''
+        
+        # return reference
+        queryset_OUT = None
+        
+        # Declare variables
+        my_queryset = None
+        my_key_value = -1
+        
+        # make sure we have a QuerySet.
+        my_queryset = self.queryset
+        if ( my_queryset ):
+        
+            # Got a list?       
+            if ( ( primary_key_list_IN ) and ( len( primary_key_list_IN ) > 0 ) ):
+                
+                # one key or more than one key?
+                if ( len( primary_key_list_IN ) == 1 ):
+                    
+                    # just one.  Get value, add "pk = ".
+                    my_key_value = primary_key_list_IN[ 0 ]
+                    
+                    my_queryset = my_queryset.filter( pk = my_key_value )
+                    
+                else:
+                
+                    # more than one.  Do "pk__in = "
+                    my_queryset = my_queryset.filter( pk__in = primary_key_list_IN )
+                    
+                #-- END check to see if one or more than one ID. --#
+            
+                # only update nested QuerySet if we actually changed something.
+                self.queryset = my_queryset
+ 
+            #-- END check to see if we have enough info. to filter. --#
+            
+        #-- END check to make sure we have a QuerySet.
+        
+        # return it also
+        queryset_OUT = self.queryset
+        
+        return queryset_OUT
+    
+    #-- END add_pk_filter() --#
+
+
     def configure_query_set( self, param_hash_IN ):
     
         '''
@@ -202,6 +268,7 @@ class QueryFilterHelper():
         value_OUT = -1
         
         # declare variables
+        primary_key_list_IN = None
         date_column_name_IN = ""
         start_date_IN = None
         end_date_IN = None
@@ -213,6 +280,14 @@ class QueryFilterHelper():
         if ( param_hash_IN ):
         
             # got something.  See if there are parameters inside.
+            # primary key list
+            if ( QueryFilterHelper.PARAM_PRIMARY_KEY_LIST in param_hash_IN ):
+            
+                # we have a date column name.
+                primary_key_list_IN = param_hash_IN[ QueryFilterHelper.PARAM_PRIMARY_KEY_LIST ]
+                
+            #-- END check to see if date column name --#            
+            
             # date column
             if ( QueryFilterHelper.PARAM_DATE_COLUMN in param_hash_IN ):
             
@@ -249,6 +324,13 @@ class QueryFilterHelper():
         
         # filter on start or end dates?
         self.add_date_filter( date_column_name_IN, start_date_IN, end_date_IN )
+        
+        # got a PK list?
+        if ( primary_key_list_IN ):
+            
+            self.add_pk_filter( primary_key_list_IN )
+            
+        #-- END check to see if need to filter on primary key. --#
         
         # got an order_by?
         if ( order_by_IN ):
