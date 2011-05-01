@@ -20,7 +20,7 @@ if __name__ == "__main__":
 import AttributeContainer
 
 # other network_builder imports.
-from network_builder.models import Node_Type_Attribute_Value
+from network_builder.models import Node, Node_Type_Attribute_Value
 
 class NodeAttributeContainer( AttributeContainer ):
 
@@ -161,6 +161,42 @@ class NodeAttributeContainer( AttributeContainer ):
         return string_OUT
         
     #-- END __unicode__() method --#
+
+
+    def get_node_for_external_id( self, original_id_IN, node_type_label_IN ):
+        
+        '''
+        Accepts original ID value, tries to retrieve a node for that value.
+        
+        Preconditions: none.
+        
+        Postconditions: when done, if success, node is stored in this instance
+           as well as returned.
+           
+        Parameters
+        - original_id_IN - original ID of node we are looking up.
+        - node_type_label_IN - label of node type we are looking up.
+        
+        Returns
+        - Node - (or None) - if Node found, returns it.  If not, returns None.
+        '''
+
+        # return reference
+        node_OUT = None
+        
+        # declare variables
+
+        # got ID and type label?
+        if ( ( original_id_IN ) and ( node_type_label_IN ) ):
+            
+            # yes - try to retrieve Node.
+            node_OUT = Node.objects.filter( original_id = original_id_IN, node_type__label = node_type_label_IN ).get()
+            
+        #-- END check to make sure we have input parameters.
+        
+        return node_OUT
+        
+    #-- END method populate_attribute_container() --#
 
 
     def populate_attribute_container( self, params_IN ):
