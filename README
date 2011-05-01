@@ -12,4 +12,5 @@ To install:
 - grab the django folder from this repo.
 - install and configure the network site (settings-anon.py has a barebones install except for your database information), or install the network_builder application in your existing site.
 - use manage.py to load the attribute types fixtures (python manage.py loaddata attribute_type.json).
+- use manage.py to load the attribute derivation types fixtures (python manage.py loaddata attribute_derivation_type.json)
 - play (and hope it doesn't break!).

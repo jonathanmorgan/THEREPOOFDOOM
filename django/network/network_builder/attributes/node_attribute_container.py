@@ -14,10 +14,10 @@ if __name__ == "__main__":
 #===============================================================================
 
 # Python base modules
-#import logging
+import logging
 
 # imports from same package
-import AttributeContainer
+from network_builder.attributes.attribute_container import AttributeContainer
 
 # other network_builder imports.
 from network_builder.models import Node, Node_Type_Attribute_Value
@@ -42,15 +42,20 @@ class NodeAttributeContainer( AttributeContainer ):
     - method to place nested attribute values in database (with flag to tell
        whether to overwrite all or just update those that are not present in
        database).
+       
+    Limitations:
+    - only works for one NodeType at a time.
+    - doesn't yet know what to do with attributes that have same label,
+        different date ranges (for now, make different attributes for each
+        date range).
     
     To use:
-    - Make sure to populate the ATTR_TO_PROPERTY_MAP and ATTR_TO_METHOD_MAP with
-       the mappings of attributes to properties and methods in the instance
-       that will be nested.  If type is specified, you can call method
-       populate_attribute_definitions to pull in all attributes defined in
-       network_builder for that type, but you'll still have to tell this class
-       how to derive them from the source you place inside (so you still have to
-       populate the maps named above).
+    - 1) Make sure to place a Node_Type model instance in the source_type
+        attribute so an instance with no nested Node can still pull in attribute
+        definitions.
+    - 2) You have to call populate_attribute_definitions() to get attribute
+        definitions - there is no magic that does this automatically when you
+        set a type (yet).
     '''
     
     #===========================================================================
@@ -61,6 +66,11 @@ class NodeAttributeContainer( AttributeContainer ):
     # parameters for looking up nodes.
     PARAM_NODE_ORIGINAL_ID = "original_id"
     PARAM_NODE_TYPE_LABEL = "node_type_label"
+    
+    # parameters for loading nodes
+    PARAM_NODE_INSTANCE = "node_instance"
+    PARAM_SOURCE_INSTANCE = "source_instance"
+    PARAM_LOAD_ATTRIBUTE_VALUES_FLAG = "load_attr_values"
 
     
     #===========================================================================
@@ -105,7 +115,7 @@ class NodeAttributeContainer( AttributeContainer ):
         
         return value_OUT
     
-    #-- END get_atttribute_source() --#
+    #-- END get_node() --#
 
 
     def set_node( self, value_IN ):
@@ -120,26 +130,18 @@ class NodeAttributeContainer( AttributeContainer ):
         my_node_type_label = ""
         
         # set value
-        self.attribute_source = value_IN
+        self.attribute_store = value_IN
         
         # set type from node.  Got a type?
         my_node_type = value_IN.node_type
         if ( my_node_type ):
             
-            # we have a node type.  Try to get label.
-            my_node_type_label = my_node_type.label
-            
-            # got a label?
-            if ( my_node_type_label ):
-                
-                # got a label.  Store it in type.
-                self.type = my_node_type_label
-                
-            #-- END check to see if node type label. --#
+            # got a node type.  Store it in store_type.
+            self.store_type = my_node_type                
             
         #-- END check to see if node type. --#
     
-    #-- END set_attribute_source() --#
+    #-- END set_node() --#
 
 
     node = property( get_node, set_node )
@@ -154,7 +156,12 @@ class NodeAttributeContainer( AttributeContainer ):
         # return reference
         string_OUT = ""
         
-        string_OUT = self.type
+        if ( self.store_type ):
+        
+            # got one. Use it in string.
+            string_OUT = str( self.store_type )
+            
+        #-- END check to see if type --#
         
         if ( self.attribute_source ):
             
@@ -167,6 +174,179 @@ class NodeAttributeContainer( AttributeContainer ):
         
     #-- END __unicode__() method --#
 
+
+    def load_attribute_values( self, params_IN ):
+
+        # return reference
+        status_OUT = "Success!"
+        
+        # declare variables
+        my_node = None
+        my_node_attribute_values = None
+        current_attribute_value = None
+        current_attribute = None
+        current_attribute_label = None
+        current_value = None
+        
+        # get node
+        my_node = self.node
+        
+        # got node?
+        if ( my_node ):
+            
+            # got a node.  Pull in attribute values for the node's type.
+            my_node_attribute_values = my_node.node_type_attribute_value_set.all()
+            
+            #logging.debug( "*** values in database: " + str( my_node_attribute_values.count() ) + " ***" )
+            
+            # loop over values, adding each to the attribute_values dictionary.
+            for current_attribute_value in my_node_attribute_values:
+                
+                # get attribute label.
+                current_attribute = current_attribute_value.node_type_attribute
+                current_attribute_label = current_attribute.label
+                
+                # get current value.
+                current_value = current_attribute_value.value
+                
+                # store.
+                self.set_attribute_value( current_attribute_label, current_value )
+                
+            #-- END loop over attribute values for current node. --#
+            
+            # set the loaded flag to true.
+            self.attrs_loaded = True
+           
+        else:
+            
+            # error - need a node to populate stuff.
+            status_OUT = "ERROR - can't load attribute values without a source node."
+        
+        #-- END check to see if we have a node. --#
+        
+    #-- END method load_attribute_values() --#
+    
+    
+    def load_node( self, params_IN ):
+    
+        '''
+        Accepts set of parameters that should include an original ID and a node
+           type.  Uses those to search for and load a Node into this instance.
+           If can't find a matching node, returns an error message describing the
+           problem.
+           
+        Preconditions: None.
+        
+        Postconditions: If success, resets instance, then stores node inside this
+           instance.
+           
+        Parameters:
+        - params_IN - parameter dictionary, expected to contain:
+            - PARAM_NODE_INSTANCE ("node_instance") - node instance to use to load this object.
+            - PARAM_SOURCE_INSTANCE ("source_instance" ) - instance to be used to derive values. If flag is set to derive, you must pass the source in to this method, else the reset will clear out existing source and any attempt to derive will fail since source will have been emptied.
+            - PARAM_NODE_ORIGINAL_ID ("original_id") - original ID of entity whose node we are looking up.
+            - PARAM_NODE_TYPE_LABEL ("node_type_label") - type of node we are trying to find.
+
+        Returns:
+        - String - status message (status_OUT).  "Success!" if success, else error message on error.
+        '''
+        
+        # return reference
+        status_OUT = "Success!"
+        
+        # declare variables
+        node_IN = None
+        source_IN = None
+        my_node_QS = None
+        my_node = None
+        got_node = False
+        result = None
+
+        # got params?
+        if ( params_IN ):
+        
+            # yes.  Look for node and source instances.
+            # node
+            if ( NodeAttributeContainer.PARAM_NODE_INSTANCE in params_IN ):
+            
+                # got one.  pull it out.
+                node_IN = params_IN[ NodeAttributeContainer.PARAM_NODE_INSTANCE ]
+                
+            #-- END check for node --#
+            
+            # source
+            if ( NodeAttributeContainer.PARAM_SOURCE_INSTANCE in params_IN ):
+            
+                # got one.  pull it out.
+                source_IN = params_IN[ NodeAttributeContainer.PARAM_SOURCE_INSTANCE ]
+            
+            #-- END check for source --#
+            
+        
+        #-- END check to see if params coming in. --#
+        
+        # first, see if there is a node already provided.
+        if ( node_IN ):
+        
+            # reset container and store node.
+            self.reset_container()
+            self.node = node_IN
+            got_node = True
+        
+        else:
+
+            # try a search for node using params passed in.
+            my_node_QS = self.node_search( params_IN )
+            
+            # got anything back?
+            if ( my_node_QS.count() == 1 ):
+            
+                # yes.  One thing.  Store it.
+                my_node = my_node_QS.get()
+                self.reset_container()
+                self.node = my_node
+                got_node = True
+                
+            elif ( my_node_QS.count() > 1 ):
+            
+                # yes, but more than one.  Use first, return error.
+                my_node = my_node_QS[ 0 ]
+                self.reset_container()
+                self.node = my_node
+                got_node = True
+                status_OUT = "ERROR - more than one node returned for parameters passed in.  Using first: " + str( my_node )
+                
+            else:
+            
+                # nothing returned.
+                status_OUT = "No node found for parameters."
+                got_node = False
+    
+            #-- END check to see if we found any matching nodes. --#            
+
+        #-- END check to see if node already there for us.
+        
+        # got a node?
+        if ( got_node == True ):
+        
+            # yes.  got source?
+            if ( source_IN ):
+            
+                # yes.  store it.
+                self.attribute_source = source_IN
+            
+            #-- END check to see if source --#
+            
+            # load attribute values.
+            result = self.populate_attribute_values( params_IN )
+            #logging.debug( "*** after call to populate_attribute_values(), result: " + str( result ) + " ***" )
+            
+        #-- END check to see if got node. --#
+        
+        return status_OUT
+    
+    #-- END method load_node() --#
+    
 
     def node_search( self, params_IN ):
         
@@ -181,26 +361,26 @@ class NodeAttributeContainer( AttributeContainer ):
            as well as returned.
            
         Parameters
-        - original_id_IN - original ID of node we are looking up.
-        - node_type_label_IN - label of node type we are looking up.
+        - params_IN - parameter dictionary, with expected values:
+            - PARAM_NODE_ORIGINAL_ID ("original_id") - original ID of entity whose node we are looking up.
+            - PARAM_NODE_TYPE_LABEL ("node_type_label") - type of node we are trying to find.
         
         Returns
-        - Node - (or None) - if Node found, returns it.  If not, returns None.
+        - QuerySet - returns QuerySet - calling program has to figure out how to interpret, process it.
         '''
 
         # return reference
-        node_OUT = None
+        node_QS_OUT = None
         
         # declare variables
         original_id_IN = -1
         node_type_label_IN = ""
-        node_QS = None
         
         # got params?
         if ( params_IN ):
 
             # Get node QuerySet.
-            node_QS = Node.objects.all()
+            node_QS_OUT = Node.objects.all()
             
             # pull in known parameters
             # original_id
@@ -213,7 +393,7 @@ class NodeAttributeContainer( AttributeContainer ):
                 if ( original_id_IN ):
                     
                     # yes - add filter.
-                    node_QS = node_QS.filter( original_id = original_id_IN )
+                    node_QS_OUT = node_QS_OUT.filter( original_id = original_id_IN )
                     
                 #-- END check to see if original ID passed in.
             
@@ -229,19 +409,15 @@ class NodeAttributeContainer( AttributeContainer ):
                 if ( node_type_label_IN ):
                     
                     # yes - add filter.
-                    node_QS = node_QS.filter( node_type__label = node_type_label_IN )
+                    node_QS_OUT = node_QS_OUT.filter( node_type__label = node_type_label_IN )
                     
                 #-- END check to make sure we have input parameters.
             
             #-- END check to see if date column name --#            
-            
-            # call get() to retrieve the one matching Node (or the first if
-            #    there are many.
-            node_OUT = node_QS.get()
-            
+                        
         #-- END check to see if parameters passed in. --#
         
-        return node_OUT
+        return node_QS_OUT
         
     #-- END method node_search() --#
 
@@ -299,7 +475,7 @@ class NodeAttributeContainer( AttributeContainer ):
     def populate_attribute_definitions( self, params_IN ):
         
         '''
-        Accepts params_IN parameter dictionary.  Uses nested node to retrieve
+        Accepts params_IN parameter dictionary.  Uses nested type to retrieve
            all associated Node Type Attributes for the node's type.  Once it
            gets attributes, passes them to parent store_attribute_definitions()
            method for actual storage.
@@ -313,38 +489,45 @@ class NodeAttributeContainer( AttributeContainer ):
         my_node_type = None
         type_attributes = None
         
-        # get node
-        my_node = self.node
+        # first, see if nested node_type.  If so, use it.
+        if ( self.store_type ):
         
-        # got node?
-        if ( my_node ):
+            # have a nested type instance.
+            my_node_type = self.store_type
             
-            # got a node.  Pull in attribute values for the node's type.
-            my_node_type = my_node.node_type
+        else:
+        
+            # not stored - try retrieving from current node.
+            my_node = self.node
             
-            # got type?
-            if ( my_node_type ):
-                
-                # get attributes - Node_Type_Attribute instances.
-                type_attributes = my_node_type.node_type_attribute_set
-                
-                # call method on parent object to store.
-                self.store_attribute_definitions( type_attributes )
-                
-            else:
-                
-                # no type. Error.
-                status_OUT = "ERROR - node doesn't have a type.  Can't get attribute definitions without a type."
+            if ( my_node ):
             
-            #-- END check to see if node type. --#
+                # got a node.  Pull in attribute values for the node's type.
+                my_node_type = my_node.node_type
+                
+            #-- END check to see if node. --#
+            
+        #-- END check to see if nested type. --#
+        
+        # got node type?
+        if ( my_node_type ):
+        
+            # get attributes - Node_Type_Attribute instances (call .all() to get
+            #    QuerySet).
+            type_attributes = my_node_type.node_type_attribute_set.all()
+            
+            # call method on parent object to store.
+            self.store_attribute_definitions( type_attributes )
             
         else:
             
-            # error - need a node to populate stuff.
-            status_OUT = "ERROR - can't populate attributes without a source node."
+            # no type. Error.
+            status_OUT = "ERROR - No node type nested, and nested node doesn't have a type.  Can't get attribute definitions without a type."
         
-        #-- END check to see if we have a node. --#
-        
+        #-- END check to see if node type. --#
+            
+        return status_OUT
+
     #-- END method populate_attribute_definitions() --#
 
 
@@ -355,6 +538,9 @@ class NodeAttributeContainer( AttributeContainer ):
         
         # declare variables
         my_node = None
+        do_derive = AttributeContainer.DEFAULT_DERIVE_FLAG
+        do_overwrite = AttributeContainer.DEFAULT_OVERWRITE_FLAG
+        
         my_node_attribute_values = None
         current_attribute_value = None
         current_attribute = None
@@ -366,28 +552,56 @@ class NodeAttributeContainer( AttributeContainer ):
         
         # got node?
         if ( my_node ):
+        
+            # got params?
+            if ( params_IN ):
             
-            # got a node.  Pull in attribute values for the node's type.
-            my_node_attribute_values = my_node.node_type_attribute_value_set.all()
+                #logging.debug( "*** in populate_attribute_values() - got parameters - " + str( params_IN ) + " ***" )
+                
+                # yes.  Got parameters we care about?
+                # derive flag
+                if ( AttributeContainer.PARAM_DERIVE_FLAG in params_IN ):
+                    
+                    # yes.  Get value.
+                    do_derive = params_IN[ AttributeContainer.PARAM_DERIVE_FLAG ]
+                    
+                else:
+                
+                    # no. Use default.
+                    do_derive = AttributeContainer.DEFAULT_DERIVE_FLAG
+                
+                #-- END check for derive flag. --#
+                
+                # overwrite flag
+                if ( AttributeContainer.PARAM_OVERWRITE_FLAG in params_IN ):
+                    
+                    # yes.  Get value.
+                    do_overwrite = params_IN[ AttributeContainer.PARAM_OVERWRITE_FLAG ]
+                    
+                else:
+                
+                    # no. Use default.
+                    do_overwrite = AttributeContainer.DEFAULT_OVERWRITE_FLAG
+                
+                #-- END check for derive flag. --#
+                
+            #-- END check to see if params passed in.
+                
+            # regardless, load attribute values for node from database.
+            self.load_attribute_values( params_IN )
             
-            # loop over values, adding each to the attribute_values dictionary.
-            for current_attribute_value in my_node_attribute_values:
-                
-                # get attribute label.
-                current_attribute = current_attribute_value.node_type_attribute
-                current_attribute_label = current_attribute.label
-                
-                # get current value.
-                current_value = current_attribute_value.value
-                
-                # store.
-                set_attribute_value( current_attribute_label, current_value )
-                
-            #-- END loop over attribute values for current node. --#
+            #logging.debug( "*** do_derive = " + str( do_derive ) + ", attribute_values = " + str( self.attribute_values ) + " ***" )
+            #logging.debug( "*** in NAC, self.attribute_source = " + str( self.attribute_source ) + " ***" )
             
-            # set the loaded flag to true.
-            self.attrs_loaded = True
-           
+            # do we derive, also?
+            if ( do_derive == True ):
+            
+                # also derive values.  Parameters will have overwrite flag if
+                #    applicable, so just pass on the params dictionary.
+                status_OUT = self.derive_attribute_values( params_IN )
+                
+            #-- END check to see if we try deriving in addition to just loading.
+            
         else:
             
             # error - need a node to populate stuff.
@@ -395,10 +609,12 @@ class NodeAttributeContainer( AttributeContainer ):
         
         #-- END check to see if we have a node. --#
         
+        return status_OUT
+        
     #-- END method populate_attribute_values() --#
     
     
-    def save_attribute_values( self, params_IN ):
+    def save_attribute_values( self, params_IN = {} ):
         
         '''
         Accepts params dictionary.  Accepts flag that says whether to overwrite
@@ -427,7 +643,7 @@ class NodeAttributeContainer( AttributeContainer ):
         
         # declare variables
         my_node = None
-        do_overwrite = False
+        do_overwrite = AttributeContainer.DEFAULT_OVERWRITE_FLAG
         my_definitions = None
         my_values = None
         current_attribute = ""
@@ -444,39 +660,44 @@ class NodeAttributeContainer( AttributeContainer ):
         # got node?
         if ( my_node ):
         
-            # see if we have an overwrite flag value
-            if ( AttributeContainer.PARAM_OVERWRITE_FLAG in params_IN ):
+            # got any parameters?
+            if ( params_IN ):
+        
+                # see if we have an overwrite flag value
+                if ( AttributeContainer.PARAM_OVERWRITE_FLAG in params_IN ):
+                    
+                    # got a value - use it.
+                    do_overwrite = params_IN[ AttributeContainer.PARAM_OVERWRITE_FLAG ]
+                    
+                else:
+                    
+                    # no value.  Leave set to False.
+                    do_overwrite = AttributeContainer.DEFAULT_OVERWRITE_FLAG
+                    
+                #-- END check to see if we are overwriting. --#
                 
-                # got a value - use it.
-                do_overwrite = params_IN[ AttributeContainer.PARAM_OVERWRITE_FLAG ]
-                
-            else:
-                
-                # no value.  Leave set to False.
-                do_overwrite = False
-                
-            #-- END check to see if we are overwriting. --#
+            #-- END check to see if params passed in. --#
             
             # now, get list of definitions, values.
             my_definitions = self.attribute_definitions
             my_values = self.attribute_values
             
             # loop over definitions
-            for current_attribute, current_definition in my_definitions:
+            for current_attribute, current_definition in my_definitions.items():
                 
                 # get ID of current attribute's type.
                 current_attribute_type_id = current_definition.id
                 
                 # get attribute value model instance from node.
-                current_attribute_QS = my_node.node_type_attribute_value_set.filter( node_type_attribute_id = current_attribute_type_id )
+                current_attribute_value_QS = my_node.node_type_attribute_value_set.filter( node_type_attribute__id = current_attribute_type_id )
                 
-                if ( current_attribute_QS.count() > 0 ):
+                if ( current_attribute_value_QS.count() > 0 ):
                     
                     # just for kicks, see if greater than 1.
-                    if ( current_attribute_QS.count() > 1 ):
+                    if ( current_attribute_value_QS.count() > 1 ):
                         
-                        # more than one.  Not sure what to do...  Will have to
-                        #   figure this out eventually.
+                        # more than one value.  Not sure what to do... Will have
+                        #    to figure this out eventually.
                         error_message = "More than one value in database for " + current_attribute + ".  Not sure what to do."
                         if ( status_OUT == "Success!" ):
                             
@@ -499,13 +720,13 @@ class NodeAttributeContainer( AttributeContainer ):
                             if ( current_attribute_value != "missing" ):
                                 
                                 # yes, we have the value.  Get the model instance.
-                                current_attribute_model = current_attribute_QS.get()
+                                current_attribute_value_model = current_attribute_value_QS.get()
                                 
                                 # update.
-                                current_attribute_model.value = current_attribute_value
+                                current_attribute_value_model.value = current_attribute_value
                                 
                                 # save
-                                current_attribute_mode.save()
+                                current_attribute_value_model.save()
                                 
                             #-- END check to see if not missing. --#
                             
@@ -521,7 +742,8 @@ class NodeAttributeContainer( AttributeContainer ):
                     if ( current_attribute_value != "missing" ):
                         
                         # yes, add it.
-                        current_attribute_model.node_type_attribute_set.create( node_type_attribute_id = current_attribute_type_id, value = current_attribute_value )
+                        # - what is this??? - current_attribute_model.node_type_attribute_set.create( node_type_attribute_id = current_attribute_type_id, value = current_attribute_value )
+                        my_node.node_type_attribute_value_set.create( node_type_attribute = current_definition, value = current_attribute_value )
                         
                     #-- END check to see if value present. --# 
                     

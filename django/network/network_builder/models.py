@@ -349,7 +349,7 @@ class Node( Dated_Model ):
         string_OUT = ''
 
         # declare variables
-        string_OUT = str( self.id ) + " - " + self.name
+        string_OUT = str( self.id ) + " - orig. ID: " + self.original_id
         
         return string_OUT
         

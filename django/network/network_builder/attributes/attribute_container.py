@@ -14,9 +14,14 @@ if __name__ == "__main__":
 #===============================================================================
 
 # Python base modules
-#import logging
+import logging
 
-class AttributeContainer(models.Model):
+# network_builder imports
+
+# django-utils imports
+from django_utils import query_filter
+
+class AttributeContainer( object ):
 
     '''
     Parent class for any type of things that has a set of attributes.  Will
@@ -61,6 +66,10 @@ class AttributeContainer(models.Model):
     # Parameters for how we create list of attributes.
     PARAM_DERIVE_FLAG = "derive_flag"
     
+    # default value constants.
+    DEFAULT_OVERWRITE_FLAG = False
+    DEFAULT_DERIVE_FLAG = False
+    
 
     #===========================================================================
     # __init__() method.
@@ -74,7 +83,7 @@ class AttributeContainer(models.Model):
         '''
         
         # variables (for now...)
-        self.type = ""
+        self.store_type = None
         self.attrs_loaded = False
         
         # properties
@@ -101,7 +110,7 @@ class AttributeContainer(models.Model):
     # attribute_definitions
     #---------------------------------------------------------------------------
 
-    def get_atttribute_definitions( self ):
+    def get_attribute_definitions( self ):
     
         '''
         Returns attribute definitions dictionary stored in internal instance
@@ -118,14 +127,14 @@ class AttributeContainer(models.Model):
             # set it to an empty dict, store, then do a recursive get call, then
             #    return the result.
             value_OUT = {}
-            self.attribute_definitions = value_OUT
-            value_OUT = self.attribute_definitions
+            self.set_attribute_definitions( value_OUT )
+            value_OUT = self.m_attr_defs_dict
             
         #-- END check to see if there is anything in m_attr_defs_dict.
         
         return value_OUT
     
-    #-- END get_atttribute_definitions() --#
+    #-- END get_attribute_definitions() --#
 
 
     def set_attribute_definitions( self, value_IN ):
@@ -141,7 +150,7 @@ class AttributeContainer(models.Model):
     #-- END set_attribute_definitions() --#
 
 
-    attribute_definitions = property( get_atttribute_definitions, set_attribute_definitions )
+    attribute_definitions = property( get_attribute_definitions, set_attribute_definitions )
 
 
     #---------------------------------------------------------------------------
@@ -149,7 +158,7 @@ class AttributeContainer(models.Model):
     #---------------------------------------------------------------------------
 
 
-    def get_atttribute_source( self ):
+    def get_attribute_source( self ):
     
         '''
         Returns attribute source instance stored in internal instance
@@ -163,7 +172,7 @@ class AttributeContainer(models.Model):
         
         return value_OUT
     
-    #-- END get_atttribute_source() --#
+    #-- END get_attribute_source() --#
 
 
     def set_attribute_source( self, value_IN ):
@@ -179,7 +188,7 @@ class AttributeContainer(models.Model):
     #-- END set_attribute_source() --#
 
 
-    attribute_source = property( get_atttribute_source, set_attribute_source )
+    attribute_source = property( get_attribute_source, set_attribute_source )
 
 
     #---------------------------------------------------------------------------
@@ -224,7 +233,7 @@ class AttributeContainer(models.Model):
     # attribute_values
     #---------------------------------------------------------------------------
 
-    def get_atttribute_values( self ):
+    def get_attribute_values( self ):
     
         '''
         Returns attribute values dictionary stored in internal instance
@@ -238,7 +247,7 @@ class AttributeContainer(models.Model):
         
         return value_OUT
     
-    #-- END get_atttribute_values() --#
+    #-- END get_attribute_values() --#
 
 
     def set_attribute_values( self, value_IN ):
@@ -254,7 +263,7 @@ class AttributeContainer(models.Model):
     #-- END set_attribute_values() --#
 
 
-    attribute_values = property( get_atttribute_values, set_attribute_values )
+    attribute_values = property( get_attribute_values, set_attribute_values )
 
 
     #============================================================================
@@ -266,7 +275,13 @@ class AttributeContainer(models.Model):
         # return reference
         string_OUT = ""
         
-        string_OUT = self.type
+        # got a type?
+        if ( self.store_type ):
+        
+            # yes - add label.
+            string_OUT = str( self.store_type )
+            
+        #-- END check to see if type. --#
         
         if ( self.attribute_source ):
             
@@ -303,6 +318,7 @@ class AttributeContainer(models.Model):
         
         # declare variables.
         my_prefix = ""
+        my_definitions = None
         current_property_name = ""
         current_attribute_name = ""
         
@@ -318,12 +334,25 @@ class AttributeContainer(models.Model):
         #-- END setting prefix value.
         
         # first add attributes mapped to properties.
-        for current_attribute_name in sorted( self.attribute_definitions ):
+        my_definitions = self.attribute_definitions
+        
+        # got any definitions?
+        if ( my_definitions ):
+    
+            # yes. Loop over them.    
+            for current_attribute_name in sorted( my_definitions ):
             
-            # append value to list.
-            header_list_OUT.append( my_prefix + current_attribute_name )
+                # append value to list.
+                header_list_OUT.append( my_prefix + current_attribute_name )
+                
+            #-- END loop over list of properties --#
             
-        #-- END loop over list of properties --#
+        else:
+        
+            # no error.  Log message.
+            logging.error( "*** In create_attribute_name_list(), no definitions loaded.  Load the definitions first. ***" )
+            
+        #-- END check to see if definitions. --#
         
         # sort list- always sort alphabetically by name.
         header_list_OUT = sorted( header_list_OUT )
@@ -350,19 +379,29 @@ class AttributeContainer(models.Model):
         list_OUT = []
         
         # declare variables.
-        do_derive = False
+        do_derive = AttributeContainer.DEFAULT_DERIVE_FLAG
         attribute_name_list = None
         current_property_name = ""
         current_attribute_name = ""
         current_value = ""
         
-        # do we derive?
-        if ( AttributeContainer.PARAM_DERIVE_FLAG in params_IN ):
+        # got params?
+        if ( params_IN ):
+
+            # do we derive?
+            if ( AttributeContainer.PARAM_DERIVE_FLAG in params_IN ):
+                
+                # parameter is present.  Set variable from it.
+                do_derive = params_IN[ AttributeContainer.PARAM_DERIVE_FLAG ]
+                
+            #-- END check to see if derive flag parameter is present. --#
             
-            # parameter is present.  Set variable from it.
-            do_derive = params_IN[ AttributeContainer.PARAM_DERIVE_FLAG ]
+        else:
+        
+            # leave as default.
+            do_derive = AttributeContainer.DEFAULT_DERIVE_FLAG
             
-        #-- END check to see if derive flag parameter is present. --#
+        #-- END check to see if params passed in.
         
         # so, again, do we derive?
         if ( do_derive == True ):
@@ -470,7 +509,7 @@ class AttributeContainer(models.Model):
                             if ( current_derived_from ):
                                 
                                 # yes.  Use it as method name.
-                                method_object = getattr( my_attribute_source, current_method_name, None )
+                                method_object = getattr( my_attribute_source, current_derived_from, None )
                                 
                                 # anything returned?
                                 if ( method_object ):
@@ -514,10 +553,10 @@ class AttributeContainer(models.Model):
         
         # return reference
         status_OUT = "Success!" 
-        
+
         # declare variables.
         my_attribute_source = None
-        do_overwrite = False
+        do_overwrite = AttributeContainer.DEFAULT_OVERWRITE_FLAG
         attribute_name_list = None
         my_values = None
         current_attr_name = ""
@@ -529,19 +568,29 @@ class AttributeContainer(models.Model):
         
         # got a source?
         if ( my_attribute_source ):
+        
+            # got params?
+            if ( params_IN ):
             
-            # yes.  are we overwriting, or just adding values not already present?
-            if ( AttributeContainer.PARAM_OVERWRITE_FLAG in params_IN ):
-                
-                # got a value - use it.
-                do_overwrite = params_IN[ AttributeContainer.PARAM_OVERWRITE_FLAG ]
+                # yes.  are we overwriting, or just adding values not already present?
+                if ( AttributeContainer.PARAM_OVERWRITE_FLAG in params_IN ):
+                    
+                    # got a value - use it.
+                    do_overwrite = params_IN[ AttributeContainer.PARAM_OVERWRITE_FLAG ]
+                    
+                else:
+                    
+                    # no value.  Leave set to False.
+                    do_overwrite = AttributeContainer.DEFAULT_OVERWRITE_FLAG
+                    
+                #-- END check to see if we are overwriting. --#
                 
             else:
+            
+                # no params.  Use default of False.
+                do_overwrite = AttributeContainer.DEFAULT_OVERWRITE_FLAG
                 
-                # no value.  Leave set to False.
-                do_overwrite = False
-                
-            #-- END check to see if we are overwriting. --#
+            #-- END check to see if params or not. --#
             
             # grab attribute names and values
             attribute_name_list = self.create_attribute_name_list( "" )
@@ -576,6 +625,8 @@ class AttributeContainer(models.Model):
                     do_update = True
                     
                 #-- END check to see if we are overwriting) --#
+                
+                #logging.debug( "*** In derive_attribute_values(), attribute: " + current_attr_name + "; do_update = " + str( do_update ) + " ***" )
                 
                 # update?
                 if ( do_update == True ):
@@ -660,17 +711,17 @@ class AttributeContainer(models.Model):
         Resets all internal variables to empty.
         '''
         
-        self.attribute_definitions = {}
+        #self.attribute_definitions = {}
         self.attribute_source = None
         self.attribute_store = None
         self.attribute_values = {}
         self.attrs_loaded = False
-        self.type = ""
+        self.store_type = None
         
     #-- END method reset_container() --#
 
 
-    def set_attribute_value( self, attr_name_IN, attr_value_IN, overwrite_existing_IN ):
+    def set_attribute_value( self, attr_name_IN, attr_value_IN, overwrite_existing_IN = True ):
         
         '''
         Stores value in attr_value_IN in dictionary entry for attr_name_IN in
