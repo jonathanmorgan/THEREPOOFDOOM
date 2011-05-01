@@ -57,6 +57,11 @@ class NodeAttributeContainer( AttributeContainer ):
     # constants-ish
     #===========================================================================
 
+
+    # parameters for looking up nodes.
+    PARAM_NODE_ORIGINAL_ID = "original_id"
+    PARAM_NODE_TYPE_LABEL = "node_type_label"
+
     
     #===========================================================================
     # __init__() method.
@@ -163,10 +168,11 @@ class NodeAttributeContainer( AttributeContainer ):
     #-- END __unicode__() method --#
 
 
-    def get_node_for_external_id( self, original_id_IN, node_type_label_IN ):
+    def get_node( self, params_IN ):
         
         '''
-        Accepts original ID value, tries to retrieve a node for that value.
+        Accepts params array, so we can look up node by more things later.  For
+           now, just accepts original ID and node_type_label, tries to retrieve a node for that value.
         
         Preconditions: none.
         
@@ -185,14 +191,54 @@ class NodeAttributeContainer( AttributeContainer ):
         node_OUT = None
         
         # declare variables
+        original_id_IN = -1
+        node_type_label_IN = ""
+        node_QS = None
+        
+        # got params?
+        if ( params_IN ):
 
-        # got ID and type label?
-        if ( ( original_id_IN ) and ( node_type_label_IN ) ):
+            # Get node QuerySet.
+            node_QS = Node.objects.all()
             
-            # yes - try to retrieve Node.
-            node_OUT = Node.objects.filter( original_id = original_id_IN, node_type__label = node_type_label_IN ).get()
+            # pull in known parameters
+            # original_id
+            if ( NodeAttributeContainer.PARAM_NODE_ORIGINAL_ID in params_IN ):
             
-        #-- END check to make sure we have input parameters.
+                # we have a date column name.
+                original_id_IN = params_IN[ NodeAttributeContainer.PARAM_NODE_ORIGINAL_ID ]
+                
+                # got original ID?
+                if ( original_id_IN ):
+                    
+                    # yes - add filter.
+                    node_QS = node_QS.filter( original_id = original_id_IN )
+                    
+                #-- END check to see if original ID passed in.
+            
+            #-- END check to see if date column name --#            
+            
+            # node type label
+            if ( NodeAttributeContainer.PARAM_NODE_TYPE_LABEL in params_IN ):
+            
+                # we have a date column name.
+                node_type_label_IN = params_IN[ NodeAttributeContainer.PARAM_NODE_TYPE_LABEL ]
+                
+                # got node type label?
+                if ( node_type_label_IN ):
+                    
+                    # yes - add filter.
+                    node_QS = node_QS.filter( node_type__label = node_type_label_IN )
+                    
+                #-- END check to make sure we have input parameters.
+            
+            #-- END check to see if date column name --#            
+            
+            # call get() to retrieve the one matching Node (or the first if
+            #    there are many.
+            node_OUT = node_QS.get()
+            
+        #-- END check to see if parameters passed in. --#
         
         return node_OUT
         
