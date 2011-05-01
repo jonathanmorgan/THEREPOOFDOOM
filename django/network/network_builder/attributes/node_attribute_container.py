@@ -168,11 +168,12 @@ class NodeAttributeContainer( AttributeContainer ):
     #-- END __unicode__() method --#
 
 
-    def get_node( self, params_IN ):
+    def node_search( self, params_IN ):
         
         '''
         Accepts params array, so we can look up node by more things later.  For
-           now, just accepts original ID and node_type_label, tries to retrieve a node for that value.
+           now, just accepts original ID and node_type_label, tries to retrieve
+           a node for those values.
         
         Preconditions: none.
         
@@ -242,7 +243,7 @@ class NodeAttributeContainer( AttributeContainer ):
         
         return node_OUT
         
-    #-- END method populate_attribute_container() --#
+    #-- END method node_search() --#
 
 
     def populate_attribute_container( self, params_IN ):
