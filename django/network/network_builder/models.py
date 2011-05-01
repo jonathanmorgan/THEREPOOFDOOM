@@ -49,6 +49,52 @@ class Labeled_Model( models.Model ):
 #= END Labeled_Model Abstract Model ============================================
 
 
+# Derived_Model abstract model
+class Derived_Attribute_Model( Labeled_Model ):
+
+    '''
+    Labeled_Model implements a label (intended to have no space), a name
+       field, and a description field.  Many models have these fields
+       together, so figured I'd just plunk them all in one place.
+    '''
+
+    #----------------------------------------------------------------------
+    # fields
+    #----------------------------------------------------------------------
+
+    # Inherited from Derived_Model
+    #label = models.CharField( max_length = 255 )
+    #name = models.CharField( max_length = 255 )
+    #description = models.TextField( blank = True, null = True )
+    attribute_type = models.ForeignKey( "Attribute_Type" )
+    attribute_derivation_type = models.ForeignKey( "Attribute_Derivation_Type", blank = True, null = True )
+    derived_from = models.CharField( max_length = 255, blank = True, null = True )
+   
+
+    # meta class so we know this is an abstract class.
+    class Meta:
+        abstract = True
+
+    #----------------------------------------------------------------------
+    # methods
+    #----------------------------------------------------------------------
+
+
+    def __unicode__( self ):
+
+        # return reference
+        string_OUT = ''
+
+        # declare variables
+        string_OUT = str( self.id ) + " - " + self.name + " ( " + self.label + " ); derived from " + self.derived_from
+        
+        return string_OUT
+        
+    #-- END method __unicode__() --#
+
+#= END Derived_Model Abstract Model ============================================
+
+
 # Dated_Model abstract model
 class Dated_Model( models.Model ):
 
@@ -130,6 +176,21 @@ class Attribute_Type( Labeled_Model ):
 #-- END Attribute_Type Model --#
 
 
+# Attribute_Type model
+class Attribute_Derivation_Type( Labeled_Model ):
+
+    '''
+    Model Derived_Attribute_Type holds derivation types for attributes.  To
+       start, will just have property and method.  This can be used to guide
+       the AttributeContainer when it is pulling in attribute values from an
+       external source.  Used in combination with the derived_from field on the
+       model that has a derived attribute type (should put the name of the
+       property or method in that field).
+    '''
+
+#-- END Attribute_Type Model --#
+
+
 #===============================================================================
 # Node Models
 #===============================================================================
@@ -152,7 +213,7 @@ class Node_Type( Labeled_Model ):
 
 
 # Node_Type_Attribute model - attributes that contain traits of a given type.
-class Node_Type_Attribute( Labeled_Model ):
+class Node_Type_Attribute( Derived_Attribute_Model ):
 
     '''
     Model NodeTypeAttribute holds the names and traits of different
@@ -163,12 +224,14 @@ class Node_Type_Attribute( Labeled_Model ):
     # fields
     #----------------------------------------------------------------------
 
-    # Inherited from Labeled_Model
+    # Inherited from Derived_Attribute_Model
     #label = models.CharField( max_length = 255 )
     #name = models.CharField( max_length = 255 )
     #description = models.TextField( blank = True, null = True )
+    #attribute_derivation_type = models.ForeignKey( "Attribute_Type" )
+    #derive_type = models.ForeignKey( "Attribute_Derivation_Type", blank = True, null = True )
+    #derived_from = models.CharField( max_length = 255, blank = True, null = True )
     node_type = models.ForeignKey( Node_Type )
-    attribute_type = models.ForeignKey( Attribute_Type )
     
     #----------------------------------------------------------------------
     # methods
@@ -352,7 +415,7 @@ class Tie_Type( Labeled_Model ):
 
 
 # Tie_Type_Attribute model - attributes that contain traits of a given type.
-class Tie_Type_Attribute( Labeled_Model ):
+class Tie_Type_Attribute( Derived_Attribute_Model ):
 
     '''
     Model TieTypeAttribute holds the names and traits of different
@@ -363,13 +426,15 @@ class Tie_Type_Attribute( Labeled_Model ):
     # fields
     #----------------------------------------------------------------------
 
-    # Inherited from Labeled_Model
+    # Inherited from Derived_Attribute_Model
     #label = models.CharField( max_length = 255 )
     #name = models.CharField( max_length = 255 )
     #description = models.TextField( blank = True, null = True )
+    #attribute_type = models.ForeignKey( "Attribute_Type" )
+    #attribute_derivation_type = models.ForeignKey( "Attribute_Derivation_Type", blank = True, null = True )
+    #derived_from = models.CharField( max_length = 255, blank = True, null = True )
 
     tie_type = models.ForeignKey( Tie_Type )
-    attribute_type = models.ForeignKey( Attribute_Type )
     
     #----------------------------------------------------------------------
     # methods
@@ -479,15 +544,15 @@ class Tie_Type_Attribute_Value( Dated_Model ):
 
     '''
     Model TieTypeAttributeValue is a Model intended to hold the specific values
-       of traits for each node of a given type.
+       of traits for each tie of a given type.
     '''
 
     #----------------------------------------------------------------------
     # fields
     #----------------------------------------------------------------------
 
-    node = models.ForeignKey( Node )
-    node_type_attribute = models.ForeignKey( Node_Type_Attribute )
+    tie = models.ForeignKey( Tie )
+    tie_type_attribute = models.ForeignKey( Tie_Type_Attribute )
     value = models.TextField( blank = True, null = True )
     
     #----------------------------------------------------------------------
@@ -501,7 +566,7 @@ class Tie_Type_Attribute_Value( Dated_Model ):
         string_OUT = ''
 
         # declare variables
-        string_OUT = str( self.id ) + " - " + self.name
+        string_OUT = str( self.id ) + " - " + self.value
         
         return string_OUT
         

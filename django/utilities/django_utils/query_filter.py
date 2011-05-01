@@ -74,7 +74,7 @@ class QueryFilterHelper():
         
         return value_OUT
     
-    #-- END add_date_filter() --#
+    #-- END get_queryset() --#
 
 
     def set_queryset( self, value_IN ):
@@ -86,7 +86,7 @@ class QueryFilterHelper():
         # return reference
         self.m_queryset = value_IN
     
-    #-- END add_date_filter() --#
+    #-- END set_queryset() --#
 
 
     queryset = property( get_queryset, set_queryset )

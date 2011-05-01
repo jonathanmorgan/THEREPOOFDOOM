@@ -1,0 +1,20 @@
+[
+    {
+        "pk": 1, 
+        "model": "network_builder.attribute_derivation_type", 
+        "fields": {
+        	"label" : "property",
+            "name": "Property",
+            "description": "Derived by grabbing the value of a property within an object."
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "network_builder.attribute_derivation_type", 
+        "fields": {
+            "label": "method", 
+            "name": "Method", 
+            "description": "Derived by a method within an object."
+        }
+    }
+]
