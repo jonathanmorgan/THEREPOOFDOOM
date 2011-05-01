@@ -16,8 +16,11 @@ if __name__ == "__main__":
 # Python base modules
 #import logging
 
-# network_builder imports.
-from attribute_container import AttributeContainer
+# imports from same package
+import AttributeContainer
+
+# other network_builder imports.
+from network_builder.models import Node_Type_Attribute_Value
 
 class NodeAttributeContainer( AttributeContainer ):
 
@@ -30,7 +33,7 @@ class NodeAttributeContainer( AttributeContainer ):
     - dictionary to hold map of string attribute labels to their corresponding
        network_builder Node_Type_Attribute model instances (in parent -
        attribute_definitions).
-    - property to hold node we are currently interacting with (source_node,
+    - property to hold node we are currently interacting with (node,
        uses parent property attribute_store).
     - method to retrieve attributes for type.
     - method to retrieve node for a given external ID.
@@ -79,11 +82,11 @@ class NodeAttributeContainer( AttributeContainer ):
 
 
     #---------------------------------------------------------------------------
-    # source_node
+    # node
     #---------------------------------------------------------------------------
 
 
-    def get_source_node( self ):
+    def get_node( self ):
     
         '''
         Returns attribute source instance stored in internal instance
@@ -93,14 +96,14 @@ class NodeAttributeContainer( AttributeContainer ):
         # return reference
         value_OUT = None
         
-        value_OUT = self.attribute_source
+        value_OUT = self.attribute_store
         
         return value_OUT
     
     #-- END get_atttribute_source() --#
 
 
-    def set_source_node( self, value_IN ):
+    def set_node( self, value_IN ):
     
         '''
         Accepts and stores attribute source instance in internal instance
@@ -134,7 +137,7 @@ class NodeAttributeContainer( AttributeContainer ):
     #-- END set_attribute_source() --#
 
 
-    source_node = property( get_source_node, set_source_node )
+    node = property( get_node, set_node )
 
 
     #============================================================================
@@ -167,7 +170,7 @@ class NodeAttributeContainer( AttributeContainer ):
            calls first populate_attribute_definitions(), then
            populate_attribute_values() to initialize this instance.
         
-        Preconditions: source_node property must contain a source node.
+        Preconditions: node property must contain a Node model instance.
         
         Postconditions: when done, attribute_values and attribute_definitions
            will have been initialized from the nested node.
@@ -187,7 +190,7 @@ class NodeAttributeContainer( AttributeContainer ):
         my_node = None
         
         # get node
-        my_node = self.source_node
+        my_node = self.node
         
         # got node?
         if ( my_node ):
@@ -228,7 +231,7 @@ class NodeAttributeContainer( AttributeContainer ):
         type_attributes = None
         
         # get node
-        my_node = self.source_node
+        my_node = self.node
         
         # got node?
         if ( my_node ):
@@ -276,7 +279,7 @@ class NodeAttributeContainer( AttributeContainer ):
         current_value = None
         
         # get node
-        my_node = self.source_node
+        my_node = self.node
         
         # got node?
         if ( my_node ):
@@ -298,6 +301,9 @@ class NodeAttributeContainer( AttributeContainer ):
                 set_attribute_value( current_attribute_label, current_value )
                 
             #-- END loop over attribute values for current node. --#
+            
+            # set the loaded flag to true.
+            self.attrs_loaded = True
            
         else:
             
@@ -307,6 +313,144 @@ class NodeAttributeContainer( AttributeContainer ):
         #-- END check to see if we have a node. --#
         
     #-- END method populate_attribute_values() --#
+    
+    
+    def save_attribute_values( self, params_IN ):
+        
+        '''
+        Accepts params dictionary.  Accepts flag that says whether to overwrite
+           or not.  Grabs list of attribute definitions.  Loops, and for each,
+           gets value from attribute_values and loads the value for the current
+           attribute from the database.  If not found in database, makes new
+           model instance and adds it to node.  If value found, checks overwrite
+           flag.  If overwrite, updates value and saves.  If not, moves on.
+           
+        For future - this will break down when we add multiple instances of same
+           attribute for different time frames.  Need to figure out how to deal
+           with that.
+           
+        Preconditions: there must be a nested node, and there must be attribute
+           values.
+           
+        Postconditions: updates the database with new attribute values.
+        
+        Parameters:
+        - params_IN - parameter dictionary that can include:
+            - AttributeContainer.PARAM_OVERWRITE_FLAG ("overwrite_flag") - if True, will refresh all values. If false, will just store attributes not already in the database. 
+        '''
+        
+        # return reference
+        status_OUT = "Success!"
+        
+        # declare variables
+        my_node = None
+        do_overwrite = False
+        my_definitions = None
+        my_values = None
+        current_attribute = ""
+        current_definition = None
+        current_attribute_type_id = -1
+        current_attribute_QS = None
+        current_attribute_model = None
+        current_attribute_value = ""
+        error_message = ""
+        
+        # get node
+        my_node = self.node
+        
+        # got node?
+        if ( my_node ):
+        
+            # see if we have an overwrite flag value
+            if ( AttributeContainer.PARAM_OVERWRITE_FLAG in params_IN ):
+                
+                # got a value - use it.
+                do_overwrite = params_IN[ AttributeContainer.PARAM_OVERWRITE_FLAG ]
+                
+            else:
+                
+                # no value.  Leave set to False.
+                do_overwrite = False
+                
+            #-- END check to see if we are overwriting. --#
+            
+            # now, get list of definitions, values.
+            my_definitions = self.attribute_definitions
+            my_values = self.attribute_values
+            
+            # loop over definitions
+            for current_attribute, current_definition in my_definitions:
+                
+                # get ID of current attribute's type.
+                current_attribute_type_id = current_definition.id
+                
+                # get attribute value model instance from node.
+                current_attribute_QS = my_node.node_type_attribute_value_set.filter( node_type_attribute_id = current_attribute_type_id )
+                
+                if ( current_attribute_QS.count() > 0 ):
+                    
+                    # just for kicks, see if greater than 1.
+                    if ( current_attribute_QS.count() > 1 ):
+                        
+                        # more than one.  Not sure what to do...  Will have to
+                        #   figure this out eventually.
+                        error_message = "More than one value in database for " + current_attribute + ".  Not sure what to do."
+                        if ( status_OUT == "Success!" ):
+                            
+                            # if status was success, replace with error.
+                            status_OUT = error_message
+                        
+                        else:
+                            
+                            # status already an error.  Append semi-colon and space, then another error.
+                            status_OUT += "; " + error_message
+                        
+                    else:
+                        
+                        # just the one.  Are we overwiting?
+                        if ( do_overwrite == True ):
+                            
+                            # we are - retrieve model, update value, and save.
+                            # got value?
+                            current_attribute_value = self.get_attribute_value( current_attribute, "missing" )
+                            if ( current_attribute_value != "missing" ):
+                                
+                                # yes, we have the value.  Get the model instance.
+                                current_attribute_model = current_attribute_QS.get()
+                                
+                                # update.
+                                current_attribute_model.value = current_attribute_value
+                                
+                                # save
+                                current_attribute_mode.save()
+                                
+                            #-- END check to see if not missing. --#
+                            
+                        #-- END check to see if overwrite. --#
+                        
+                    #-- END check to see just how many values there are (should only be one?) --#
+                    
+                else:
+                    
+                    # no value for this attribute yet.  Add one.
+                    # got value?
+                    current_attribute_value = self.get_attribute_value( current_attribute, "missing" )
+                    if ( current_attribute_value != "missing" ):
+                        
+                        # yes, add it.
+                        current_attribute_model.node_type_attribute_set.create( node_type_attribute_id = current_attribute_type_id, value = current_attribute_value )
+                        
+                    #-- END check to see if value present. --# 
+                    
+                #-- END check to see if value already exists.
+                
+            #-- END loop over definitions. --#
+                
+        #-- END check to make sure we have a node. --#
+        
+        return status_OUT        
+        
+    #-- END method save_attribute_values() --#
 
 
 #-- END class AttributeContainer --#

@@ -45,6 +45,10 @@ class AttributeContainer(models.Model):
     # constants-ish
     #===========================================================================
     
+    # parameters to hold derivation types.
+    DERIVE_TYPE_PROPERTY = "property"
+    DERIVE_TYPE_METHOD = "method"
+    
     # Parameters for limiting QuerySets.
     PARAM_DATE_COLUMN = query_filter.QueryFilterHelper.PARAM_DATE_COLUMN
     PARAM_START_DATE = query_filter.QueryFilterHelper.PARAM_START_DATE
@@ -314,20 +318,12 @@ class AttributeContainer(models.Model):
         #-- END setting prefix value.
         
         # first add attributes mapped to properties.
-        for current_attribute_name in sorted( self.ATTR_TO_PROPERTY_MAP ):
+        for current_attribute_name in sorted( self.attribute_definitions ):
             
             # append value to list.
             header_list_OUT.append( my_prefix + current_attribute_name )
             
         #-- END loop over list of properties --#
-        
-        # now put attributes mapped to methods in place.
-        for current_attribute_name in sorted( self.ATTR_TO_METHOD_MAP ):
-            
-            # append value to list.
-            header_list_OUT.append( my_prefix + current_attribute_name )
-            
-        #-- END loop over attributes.
         
         # sort list- always sort alphabetically by name.
         header_list_OUT = sorted( header_list_OUT )
@@ -420,39 +416,77 @@ class AttributeContainer(models.Model):
         
         # declare variables.
         my_attribute_source = None
-        current_method_name = ""
+        my_definitions = None
+        attribute_type = None
+        derivation_type_label = ""
+        current_derived_from = ""
         method_object = None
         current_value = ""
         
         # get source instance
         my_attribute_source = self.attribute_source
         
+        # get attribute definitions
+        my_definitions = self.attribute_definitions
+        
         # got a source?
         if ( my_attribute_source ):
             
             # got an attribute name?
             if ( attr_name_IN ):
-            
-                # see if it is mapped to a property or a method.
-                if ( attr_name_IN in self.ATTR_TO_PROPERTY_MAP ):
+                
+                # see if it is mapped to a definition.
+                if ( attr_name_IN in my_definitions ):
                     
-                    # it is a property.  Retrieve property from source.
-                    value_OUT = getattr( my_attribute_source, current_property_name, None )
+                    # yup - grab the definition and get the label.
+                    attribute_type = my_definitions[ attr_name_IN ]
                     
-                elif( attr_name_IN in self.ATTR_TO_METHOD_MAP ):
-            
-                    # it is a method.  Retrieve method from source.
-                    method_object = getattr( my_attribute_source, current_method_name, None )
-                    
-                    # anything returned?
-                    if ( method_object ):
+                    # get label
+                    derivation_type_label = attribute_type.get_derivation_type_label()
+
+                    # got a label?  If not, no way to derive.  Punt and move on.
+                    if ( derivation_type_label ):
                         
-                        # invoke the method
-                        value_OUT = method_object( params_IN )
-                        
-                    #-- END method invocaton. --#
+                        # See if type is property.
+                        if ( derivation_type_label == AttributeContainer.DERIVE_TYPE_PROPERTY ):
+                            
+                            # it is.  Get property.
+                            current_derived_from = attribute_type.derived_from
+                            
+                            # got a derived_from?
+                            if ( current_derived_from ):
+                                
+                                # yes.  retrieve property.
+                                value_OUT = getattr( my_attribute_source, current_derived_from, None )
+                                
+                            #-- END check to see if got a property name. --#
+                            
+                        elif( derivation_type_label == AttributeContainer.DERIVE_TYPE_METHOD ):
                     
-                #-- END check to see what type of attribute we are getting. --#
+                            # it is a method.  Retrieve method from source.
+                            current_derived_from = attribute_type.derived_from
+                            
+                            # got a derived_from?
+                            if ( current_derived_from ):
+                                
+                                # yes.  Use it as method name.
+                                method_object = getattr( my_attribute_source, current_method_name, None )
+                                
+                                # anything returned?
+                                if ( method_object ):
+                                    
+                                    # invoke the method
+                                    value_OUT = method_object( params_IN )
+                                    
+                                #-- END method invocaton. --#
+                            
+                            #-- END check to see if derived_from --# 
+
+                        #-- END check to see what type of attribute we are getting. --#
+                    
+                    #-- END check to see if we have a label. --#
+                
+                #-- END check to see if we have a definition. --#
                 
             #-- END check to make sure we have an attribute name --#
             

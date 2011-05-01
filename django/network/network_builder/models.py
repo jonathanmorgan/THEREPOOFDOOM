@@ -91,6 +91,31 @@ class Derived_Attribute_Model( Labeled_Model ):
         return string_OUT
         
     #-- END method __unicode__() --#
+    
+    
+    def get_derivation_type_label( self ):
+        
+        # return reference
+        value_OUT = ""
+        
+        # declare variables
+        derivation_type = None
+        
+        # get derivation type
+        derivation_type = self.attribute_derivation_type
+        
+        # got one?
+        if ( derivation_type ):
+            
+            # yes. Get label.
+            value_OUT = derivation_type.label
+            
+        #-- END check to make sure we have a derivation type.  --#
+        
+        return value_OUT
+        
+    #-- END method get_derivation_type_label() --#
+    
 
 #= END Derived_Model Abstract Model ============================================
 
