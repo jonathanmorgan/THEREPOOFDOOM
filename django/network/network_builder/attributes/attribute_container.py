@@ -66,6 +66,9 @@ class AttributeContainer( object ):
     # Parameters for how we create list of attributes.
     PARAM_DERIVE_FLAG = "derive_flag"
     
+    # Parameter name for attribute values.
+    PARAM_ATTRIBUTE_VALUES = "nb_a_ac_attribute_values"
+    
     # default value constants.
     DEFAULT_OVERWRITE_FLAG = False
     DEFAULT_DERIVE_FLAG = False
@@ -456,11 +459,16 @@ class AttributeContainer( object ):
         # declare variables.
         my_attribute_source = None
         my_definitions = None
+        my_attribute_values = None
         attribute_type = None
         derivation_type_label = ""
         current_derived_from = ""
         method_object = None
+        derivation_parameters_QS = None
+        current_parameter = None
+        current_name = ""
         current_value = ""
+        param_cleanup_list = None
         
         # get source instance
         my_attribute_source = self.attribute_source
@@ -514,8 +522,51 @@ class AttributeContainer( object ):
                                 # anything returned?
                                 if ( method_object ):
                                     
+                                    # yes.  See if there are any derivation
+                                    #    parameters we need to add to the
+                                    #    params.
+                                    param_cleanup_list = []
+                                    derivation_parameters_QS = attribute_type.derivation_parameter_set.all()
+                                    if ( derivation_parameters_QS ): 
+                                        
+                                        # got something.  Loop and add to params_IN.
+                                        for current_parameter in derivation_parameters_QS:
+                                            
+                                            # get name and value
+                                            current_name = current_parameter.label
+                                            current_value = current_parameter.value
+                                            
+                                            # if not already present in params, add to params.
+                                            if ( current_name not in params_IN ):
+                                                
+                                                # not overridden, so place value.
+                                                params_IN[ current_name ] = current_value
+                                                
+                                                # add name to cleanup list.
+                                                param_cleanup_list.append( current_name )
+                                                
+                                            #-- END check to make sure parameter isn't already set.
+                                            
+                                        #-- END loop over parameters. --#
+                                        
+                                    #-- END check to see if there are derivation parameters to pass. --#
+                                    
                                     # invoke the method
                                     value_OUT = method_object( params_IN )
+                                    
+                                    # anything in cleanup list?
+                                    if ( len( param_cleanup_list ) > 0 ):
+                                        
+                                        # yes, parameters to clear out.
+                                        for current_name in param_cleanup_list:
+                                            
+                                            # remove the name-value pair for
+                                            #    current_name from params_IN.
+                                            del( params_IN[ current_name ] )
+                                            
+                                        #-- END loop over parameters to clean up --#
+                                        
+                                    #-- END check if we need to clean up params_IN --#
                                     
                                 #-- END method invocaton. --#
                             
@@ -595,6 +646,10 @@ class AttributeContainer( object ):
             # grab attribute names and values
             attribute_name_list = self.create_attribute_name_list( "" )
             my_values = self.attribute_values
+            
+            # add attribute values reference to params_IN, so they are available
+            #    to derivation routines that might be aware of them.
+            params_IN[ AttributeContainer.PARAM_ATTRIBUTE_VALUES ] = my_values
             
             # iterate over names.  For each, see if value is in our values map.
             #  

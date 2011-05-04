@@ -49,6 +49,48 @@ class Labeled_Model( models.Model ):
 #= END Labeled_Model Abstract Model ============================================
 
 
+# Name_Value_Pair_Model abstract model
+class Name_Value_Pair_Model( Labeled_Model ):
+
+    '''
+    Name_Value_Pair_Model implements Labeled_Model, adds an associated value.
+       Bold, yes, I know.
+    '''
+
+    #----------------------------------------------------------------------
+    # fields
+    #----------------------------------------------------------------------
+
+    # inherited from Labeled_Model
+    #label = models.CharField( max_length = 255 )
+    #name = models.CharField( max_length = 255 )
+    #description = models.TextField( blank = True, null = True )
+    value = models.TextField( blank = True, null = True )
+
+    # meta class so we know this is an abstract class.
+    class Meta:
+        abstract = True
+
+    #----------------------------------------------------------------------
+    # methods
+    #----------------------------------------------------------------------
+
+
+    def __unicode__( self ):
+
+        # return reference
+        string_OUT = ''
+
+        # declare variables
+        string_OUT = str( self.id ) + " - " + self.name + " ( " + self.label + " ) = " + self.value
+        
+        return string_OUT
+        
+    #-- END method __unicode__() --#
+
+#= END Name_Value_Pair_Model Abstract Model ============================================
+
+
 # Derived_Model abstract model
 class Derived_Attribute_Model( Labeled_Model ):
 
@@ -70,6 +112,7 @@ class Derived_Attribute_Model( Labeled_Model ):
     attribute_derivation_type = models.ForeignKey( "Attribute_Derivation_Type", blank = True, null = True )
     derived_from = models.CharField( max_length = 255, blank = True, null = True )
    
+    # can also have one or more related Derivation_Parameter instances
 
     # meta class so we know this is an abstract class.
     class Meta:
@@ -317,6 +360,26 @@ class Node_Type_Attribute_Valid_Value( models.Model ):
 #-- END Node_Type_Attribute_Valid_Value Model --#
 
 
+# Node_Type_Attribute_Derivation_Parameter model
+class Node_Type_Attribute_Derivation_Parameter( Name_Value_Pair_Model ):
+
+    '''
+    Model Node_Type_Attribute_Derivation_Parameter holds parameters that need to
+       be passed to a source instance as part of a request to derive a value.  A
+       given Node_Type_Attribute can have as many derivation parameters as
+       needed.
+    '''
+    
+    # inherited from Name_Value_Pair_Model
+    #label = models.CharField( max_length = 255 )
+    #name = models.CharField( max_length = 255 )
+    #description = models.TextField( blank = True, null = True )
+    #value = models.TextField( blank = True, null = True )
+    node_type_attribute = models.ForeignKey( Node_Type_Attribute, related_name = "derivation_parameter_set" )
+
+#-- END Node_Type_Attribute_Derivation_Parameter Model --#
+
+
 # Node Model
 class Node( Dated_Model ):
 
@@ -518,6 +581,26 @@ class Tie_Type_Attribute_Valid_Value( models.Model ):
     #-- END method __unicode__() --#
 
 #= END Tie_Type_Attribute_Valid_Value Model ========================================================
+
+
+# Tie_Type_Attribute_Derivation_Parameter model
+class Tie_Type_Attribute_Derivation_Parameter( Name_Value_Pair_Model ):
+
+    '''
+    Model Tie_Type_Attribute_Derivation_Parameter holds parameters that need to
+       be passed to a source instance as part of a request to derive a value.  A
+       given Tie_Type_Attribute can have as many derivation parameters as
+       needed.
+    '''
+    
+    # inherited from Name_Value_Pair_Model
+    #label = models.CharField( max_length = 255 )
+    #name = models.CharField( max_length = 255 )
+    #description = models.TextField( blank = True, null = True )
+    #value = models.TextField( blank = True, null = True )
+    tie_type_attribute = models.ForeignKey( Tie_Type_Attribute, related_name = "derivation_parameter_set" )
+
+#-- END Tie_Type_Attribute_Derivation_Parameter Model --#
 
 
 # Tie Model
