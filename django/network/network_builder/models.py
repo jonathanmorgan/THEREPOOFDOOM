@@ -360,14 +360,17 @@ class Node_Type_Attribute_Valid_Value( models.Model ):
 #-- END Node_Type_Attribute_Valid_Value Model --#
 
 
-# Node_Type_Attribute_Derivation_Parameter model
-class Node_Type_Attribute_Derivation_Parameter( Name_Value_Pair_Model ):
+# Node_Type_Attribute_Deriv_Param model
+class Node_Type_Attribute_Deriv_Param( Name_Value_Pair_Model ):
 
     '''
-    Model Node_Type_Attribute_Derivation_Parameter holds parameters that need to
+    Model Node_Type_Attribute_Deriv_Param holds parameters that need to
        be passed to a source instance as part of a request to derive a value.  A
        given Node_Type_Attribute can have as many derivation parameters as
        needed.
+    Had to rename to Node_Type_Attribute_Deriv_Param because model name can only
+       be 39 or fewer characters long:
+       http://code.djangoproject.com/ticket/8548
     '''
     
     # inherited from Name_Value_Pair_Model
@@ -377,7 +380,7 @@ class Node_Type_Attribute_Derivation_Parameter( Name_Value_Pair_Model ):
     #value = models.TextField( blank = True, null = True )
     node_type_attribute = models.ForeignKey( Node_Type_Attribute, related_name = "derivation_parameter_set" )
 
-#-- END Node_Type_Attribute_Derivation_Parameter Model --#
+#-- END Node_Type_Attribute_Deriv_Param Model --#
 
 
 # Node Model
@@ -583,14 +586,17 @@ class Tie_Type_Attribute_Valid_Value( models.Model ):
 #= END Tie_Type_Attribute_Valid_Value Model ========================================================
 
 
-# Tie_Type_Attribute_Derivation_Parameter model
-class Tie_Type_Attribute_Derivation_Parameter( Name_Value_Pair_Model ):
+# Tie_Type_Attribute_Deriv_Param model
+class Tie_Type_Attribute_Deriv_Param( Name_Value_Pair_Model ):
 
     '''
-    Model Tie_Type_Attribute_Derivation_Parameter holds parameters that need to
+    Model Tie_Type_Attribute_Deriv_Param holds parameters that need to
        be passed to a source instance as part of a request to derive a value.  A
        given Tie_Type_Attribute can have as many derivation parameters as
        needed.
+    Had to rename to Tie_Type_Attribute_Deriv_Param because model name can only
+       be 39 or fewer characters long:
+       http://code.djangoproject.com/ticket/8548
     '''
     
     # inherited from Name_Value_Pair_Model
@@ -600,7 +606,7 @@ class Tie_Type_Attribute_Derivation_Parameter( Name_Value_Pair_Model ):
     #value = models.TextField( blank = True, null = True )
     tie_type_attribute = models.ForeignKey( Tie_Type_Attribute, related_name = "derivation_parameter_set" )
 
-#-- END Tie_Type_Attribute_Derivation_Parameter Model --#
+#-- END Tie_Type_Attribute_Deriv_Param Model --#
 
 
 # Tie Model
