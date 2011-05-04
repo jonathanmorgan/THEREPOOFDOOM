@@ -17,12 +17,12 @@ if __name__ == "__main__":
 import logging
 
 # imports from same package
-from network_builder.attributes.attribute_container import AttributeContainer
+from network_builder.attributes import attribute_container
 
 # other network_builder imports.
 from network_builder.models import Node, Node_Type_Attribute_Value
 
-class NodeAttributeContainer( AttributeContainer ):
+class NodeAttributeContainer( attribute_container.AttributeContainer ):
 
     '''
     Class that extends AttributeContainer, to hold attributes of a specific
@@ -538,8 +538,8 @@ class NodeAttributeContainer( AttributeContainer ):
         
         # declare variables
         my_node = None
-        do_derive = AttributeContainer.DEFAULT_DERIVE_FLAG
-        do_overwrite = AttributeContainer.DEFAULT_OVERWRITE_FLAG
+        do_derive = attribute_container.AttributeContainer.DEFAULT_DERIVE_FLAG
+        do_overwrite = attribute_container.AttributeContainer.DEFAULT_OVERWRITE_FLAG
         
         my_node_attribute_values = None
         current_attribute_value = None
@@ -560,28 +560,28 @@ class NodeAttributeContainer( AttributeContainer ):
                 
                 # yes.  Got parameters we care about?
                 # derive flag
-                if ( AttributeContainer.PARAM_DERIVE_FLAG in params_IN ):
+                if ( attribute_container.AttributeContainer.PARAM_DERIVE_FLAG in params_IN ):
                     
                     # yes.  Get value.
-                    do_derive = params_IN[ AttributeContainer.PARAM_DERIVE_FLAG ]
+                    do_derive = params_IN[ attribute_container.AttributeContainer.PARAM_DERIVE_FLAG ]
                     
                 else:
                 
                     # no. Use default.
-                    do_derive = AttributeContainer.DEFAULT_DERIVE_FLAG
+                    do_derive = attribute_container.AttributeContainer.DEFAULT_DERIVE_FLAG
                 
                 #-- END check for derive flag. --#
                 
                 # overwrite flag
-                if ( AttributeContainer.PARAM_OVERWRITE_FLAG in params_IN ):
+                if ( attribute_container.AttributeContainer.PARAM_OVERWRITE_FLAG in params_IN ):
                     
                     # yes.  Get value.
-                    do_overwrite = params_IN[ AttributeContainer.PARAM_OVERWRITE_FLAG ]
+                    do_overwrite = params_IN[ attribute_container.AttributeContainer.PARAM_OVERWRITE_FLAG ]
                     
                 else:
                 
                     # no. Use default.
-                    do_overwrite = AttributeContainer.DEFAULT_OVERWRITE_FLAG
+                    do_overwrite = attribute_container.AttributeContainer.DEFAULT_OVERWRITE_FLAG
                 
                 #-- END check for derive flag. --#
                 
@@ -643,7 +643,7 @@ class NodeAttributeContainer( AttributeContainer ):
         
         # declare variables
         my_node = None
-        do_overwrite = AttributeContainer.DEFAULT_OVERWRITE_FLAG
+        do_overwrite = attribute_container.AttributeContainer.DEFAULT_OVERWRITE_FLAG
         my_definitions = None
         my_values = None
         current_attribute = ""
@@ -664,15 +664,15 @@ class NodeAttributeContainer( AttributeContainer ):
             if ( params_IN ):
         
                 # see if we have an overwrite flag value
-                if ( AttributeContainer.PARAM_OVERWRITE_FLAG in params_IN ):
+                if ( attribute_container.AttributeContainer.PARAM_OVERWRITE_FLAG in params_IN ):
                     
                     # got a value - use it.
-                    do_overwrite = params_IN[ AttributeContainer.PARAM_OVERWRITE_FLAG ]
+                    do_overwrite = params_IN[ attribute_container.AttributeContainer.PARAM_OVERWRITE_FLAG ]
                     
                 else:
                     
                     # no value.  Leave set to False.
-                    do_overwrite = AttributeContainer.DEFAULT_OVERWRITE_FLAG
+                    do_overwrite = attribute_container.AttributeContainer.DEFAULT_OVERWRITE_FLAG
                     
                 #-- END check to see if we are overwriting. --#
                 
