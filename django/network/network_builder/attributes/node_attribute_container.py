@@ -650,6 +650,7 @@ class NodeAttributeContainer( attribute_container.AttributeContainer ):
         current_definition = None
         current_attribute_type_id = -1
         current_attribute_QS = None
+        current_attribute_value_count = -1
         current_attribute_model = None
         current_attribute_value = ""
         error_message = ""
@@ -691,10 +692,13 @@ class NodeAttributeContainer( attribute_container.AttributeContainer ):
                 # get attribute value model instance from node.
                 current_attribute_value_QS = my_node.node_type_attribute_value_set.filter( node_type_attribute__id = current_attribute_type_id )
                 
-                if ( current_attribute_value_QS.count() > 0 ):
+                # count matching values
+                current_attribute_value_count = current_attribute_value_QS.count()
+                
+                if ( current_attribute_value_count > 0 ):
                     
                     # just for kicks, see if greater than 1.
-                    if ( current_attribute_value_QS.count() > 1 ):
+                    if ( current_attribute_value_count > 1 ):
                         
                         # more than one value.  Not sure what to do... Will have
                         #    to figure this out eventually.
@@ -708,6 +712,8 @@ class NodeAttributeContainer( attribute_container.AttributeContainer ):
                             
                             # status already an error.  Append semi-colon and space, then another error.
                             status_OUT += "; " + error_message
+                            
+                        #-- END adding on error to status message. --#
                         
                     else:
                         

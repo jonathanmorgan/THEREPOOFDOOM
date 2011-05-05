@@ -3,6 +3,14 @@ from django.db import models
 # TODO - Add table to hold network query inputs for some or all attempts to
 #    build a network, so you can reproduce later on.
 
+'''
+===========================================
+Indexes to speed up traversing database
+===========================================
+
+ALTER TABLE `jonE2`.`network_builder_node_type_attribute` ADD INDEX `network_builder_node_type_attribute_label` USING BTREE (label);
+'''
+
 #===============================================================================
 # Abstract Models
 #===============================================================================

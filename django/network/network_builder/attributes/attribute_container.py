@@ -62,6 +62,7 @@ class AttributeContainer( object ):
     
     # Parameters for controlling how we derive properties
     PARAM_OVERWRITE_FLAG = "overwrite_flag"
+    PARAM_SELECTED_ATTRIBUTE_NAMES_LIST = "nb_a_ac_selected_attributes"
     
     # Parameters for how we create list of attributes.
     PARAM_DERIVE_FLAG = "derive_flag"
@@ -644,7 +645,31 @@ class AttributeContainer( object ):
             #-- END check to see if params or not. --#
             
             # grab attribute names and values
-            attribute_name_list = self.create_attribute_name_list( "" )
+            # check to see if a list of selected parameters to update has been
+            #    passed in (this should help speed things up)
+            if ( AttributeContainer.PARAM_SELECTED_ATTRIBUTE_NAMES_LIST in params_IN )
+            
+                # we have a list of just the names we are supposed to process.
+                #   Get the list.
+                attribute_name_list = params_IN[ AttributeContainer.PARAM_SELECTED_ATTRIBUTE_NAMES_LIST ]
+                
+                # got anything in it?  If no, go ahead and run through all the
+                #    names.
+                if ( len( attribute_name_list ) < 1 ):
+                    
+                    # nothing in it.  Go ahead and try all of the names.
+                    attribute_name_list = self.create_attribute_name_list( "" )
+                    
+                #-- END check to see if any names passed in --#
+                
+            else:
+            
+                # no selected attributes, run through all names.
+                attribute_name_list = self.create_attribute_name_list( "" )
+                
+            #-- END getting names of attributes to process. --#
+            
+            # get values.
             my_values = self.attribute_values
             
             # add attribute values reference to params_IN, so they are available
