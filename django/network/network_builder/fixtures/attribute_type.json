@@ -61,5 +61,14 @@
             "name": "Boolean", 
             "description": "Boolean - true or false."
         }
+    },
+    {
+        "pk": 8, 
+        "model": "network_builder.attribute_type", 
+        "fields": {
+            "label": "pickle_jar", 
+            "name": "Pickle Jar", 
+            "description": "Pickled data.  Could be anything.  I do love pickles."
+        }
     }
 ]

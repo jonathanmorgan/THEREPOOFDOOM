@@ -53,6 +53,7 @@ class AttributeContainer( object ):
     # parameters to hold derivation types.
     DERIVE_TYPE_PROPERTY = "property"
     DERIVE_TYPE_METHOD = "method"
+    DERIVE_TYPE_DEPENDENT = "dependent"
     
     # Parameters for limiting QuerySets.
     PARAM_DATE_COLUMN = query_filter.QueryFilterHelper.PARAM_DATE_COLUMN
@@ -63,6 +64,7 @@ class AttributeContainer( object ):
     # Parameters for controlling how we derive properties
     PARAM_OVERWRITE_FLAG = "overwrite_flag"
     PARAM_SELECTED_ATTRIBUTE_NAMES_LIST = "nb_a_ac_selected_attributes"
+    PARAM_EXCLUDED_ATTRIBUTE_NAMES_LIST = "nb_a_ac_excluded_attributes"
     
     # Parameters for how we create list of attributes.
     PARAM_DERIVE_FLAG = "derive_flag"
@@ -100,7 +102,8 @@ class AttributeContainer( object ):
         #    contain either Node_Type_Attribute or Tie_Type_Attribute instances.
         self.m_attr_defs_dict = {}
 
-             
+        # place to store list of names of attributes that we are processing.
+        self.m_attr_names_list = []
 
     #-- END constructor --#
 
@@ -155,6 +158,43 @@ class AttributeContainer( object ):
 
 
     attribute_definitions = property( get_attribute_definitions, set_attribute_definitions )
+
+
+    #---------------------------------------------------------------------------
+    # attribute_names
+    #---------------------------------------------------------------------------
+
+    def get_attribute_names( self ):
+    
+        '''
+        Returns attribute names list stored in internal instance
+           variable.
+        ''' 
+        
+        # return reference
+        value_OUT = None
+        
+        value_OUT = self.m_attr_names_list
+        
+        return value_OUT
+    
+    #-- END get_attribute_values() --#
+
+
+    def set_attribute_names( self, value_IN ):
+    
+        '''
+        Accepts and stores attribute names list in internal instance
+           variable.
+        ''' 
+        
+        # set value
+        self.m_attr_names_list = value_IN
+    
+    #-- END set_attribute_values() --#
+
+
+    attribute_names = property( get_attribute_names, set_attribute_names )
 
 
     #---------------------------------------------------------------------------
@@ -299,7 +339,7 @@ class AttributeContainer( object ):
     #-- END __unicode__() method --#
     
 
-    def create_attribute_name_list( self, prefix_IN ):
+    def create_attribute_name_list( self, prefix_IN, params_IN = None ):
         
         '''
         For exporting a given container's information, returns the list of
@@ -318,13 +358,16 @@ class AttributeContainer( object ):
         '''
         
         # return reference
-        header_list_OUT = []
+        header_list_OUT = None
         
         # declare variables.
         my_prefix = ""
+        selected_attribute_name_list = None
+        excluded_attribute_name_list = None
         my_definitions = None
         current_property_name = ""
         current_attribute_name = ""
+        do_append_name = False
         
         # got a prefix?
         if ( prefix_IN ):
@@ -337,28 +380,96 @@ class AttributeContainer( object ):
             
         #-- END setting prefix value.
         
-        # first add attributes mapped to properties.
-        my_definitions = self.attribute_definitions
-        
-        # got any definitions?
-        if ( my_definitions ):
-    
-            # yes. Loop over them.    
-            for current_attribute_name in sorted( my_definitions ):
+        # got params?
+        if ( params_IN ):
             
-                # append value to list.
-                header_list_OUT.append( my_prefix + current_attribute_name )
+            # check to see if a list of selected names has been passed in (this
+            #    should help speed things up when deriving).
+            if ( AttributeContainer.PARAM_SELECTED_ATTRIBUTE_NAMES_LIST in params_IN ):
+            
+                # we have a list of just the names we are supposed to process.
+                #   Get the list.
+                selected_attribute_name_list = params_IN[ AttributeContainer.PARAM_SELECTED_ATTRIBUTE_NAMES_LIST ]
                 
-            #-- END loop over list of properties --#
+                # got anything in it?  If no, go ahead and run through all the
+                #    names.
+                if ( len( selected_attribute_name_list ) > 0 ):
+                    
+                    # got a list.  Use it.
+                    header_list_OUT = selected_attribute_name_list
+                    
+                #-- END check to see if any names passed in --#
+                
+            #-- END getting names of attributes to process. --#
+
+            # check to see if a list of excluded names has been passed in.
+            if ( AttributeContainer.PARAM_EXCLUDED_ATTRIBUTE_NAMES_LIST in params_IN ):
             
-        else:
+                # we have a list of names we are supposed to skip. Get the list.
+                excluded_attribute_name_list = params_IN[ AttributeContainer.PARAM_EXCLUDED_ATTRIBUTE_NAMES_LIST ]
+                
+                # got anything in it?  If no, None out the variable.
+                if ( len( excluded_attribute_name_list ) < 1 ):
+                    
+                    # got a list.  Use it.
+                    excluded_attribute_name_list = None
+                    
+                #-- END check to see if any names passed in --#
+                
+            #-- END getting names of attributes to process. --#
+
+        #-- END check to see if params passed in. --#
         
-            # no error.  Log message.
-            logging.error( "*** In create_attribute_name_list(), no definitions loaded.  Load the definitions first. ***" )
+        # got a list from parameters?
+        if ( not header_list_OUT ):
+        
+            # not yet - generate one.
+            header_list_OUT = []
             
-        #-- END check to see if definitions. --#
+            # first add attributes mapped to properties.
+            my_definitions = self.attribute_definitions
+            
+            # got any definitions?
+            if ( my_definitions ):
         
-        # sort list- always sort alphabetically by name.
+                # yes. Loop over them.    
+                for current_attribute_name in sorted( my_definitions ):
+                
+                    do_append_name = True
+                
+                    # do we have excluded list?
+                    if ( excluded_attribute_name_list ):
+                    
+                        # yes.  Is current name in it?
+                        if ( current_attribute_name in excluded_attribute_name_list ):
+                        
+                            # why yes, it is.  do not append.
+                            do_append_name = False
+                            
+                        #-- END check to see if name is in excluded list. --#
+                        
+                    #-- END check to see if there is an excluded list. --#                    
+                        
+                    # append value to list?
+                    if ( do_append_name == True ):
+                    
+                        # yes.
+                        header_list_OUT.append( my_prefix + current_attribute_name )
+                        
+                    #-- END check to see if we append the current name. --#
+                    
+                #-- END loop over list of properties --#
+                
+            else:
+            
+                # no.  error.  Log message.
+                logging.error( "*** In create_attribute_name_list(), no definitions loaded.  Load the definitions first. ***" )
+                
+            #-- END check to see if definitions. --#
+            
+        #-- END 
+        
+        # sort list - always sort alphabetically by name.
         header_list_OUT = sorted( header_list_OUT )
 
         return header_list_OUT
@@ -416,7 +527,7 @@ class AttributeContainer( object ):
         #-- END check to see if we derive attributes --#
         
         # get list of attribute names, in alphabetical order.
-        attribute_name_list = self.create_attribute_name_list( "" )
+        attribute_name_list = self.create_attribute_name_list( "", params_IN )
         
         # next, loop over attribute names, adding each to output.
         for current_attribute_name in attribute_name_list:
@@ -573,6 +684,31 @@ class AttributeContainer( object ):
                             
                             #-- END check to see if derived_from --# 
 
+                        elif( derivation_type_label == AttributeContainer.DERIVE_TYPE_DEPENDENT ):
+                        
+                            # dependent.  Make sure that derived_from value is in
+                            #    name list.  If not, add it.
+                            current_derived_from = attribute_type.derived_from
+                            
+                            # got a derived_from?
+                            if ( current_derived_from ):
+                                
+                                # yes.  is it in list of properties that are
+                                #    getting processed?
+                                attribute_names = self.attribute_names
+                                
+                                if ( not current_derived_from in attribute_names ):
+                                
+                                    # TODO need to figure out what to do here.
+                                    #    Dependent was included, but the property
+                                    #    that creates its values was not.
+                                    pass
+                                
+                                #-- END check to see if property is in list of those being processed. --#
+                                
+                            #-- END check to see if got a property name. --#
+                            
+                        
                         #-- END check to see what type of attribute we are getting. --#
                     
                     #-- END check to see if we have a label. --#
@@ -645,29 +781,10 @@ class AttributeContainer( object ):
             #-- END check to see if params or not. --#
             
             # grab attribute names and values
-            # check to see if a list of selected parameters to update has been
-            #    passed in (this should help speed things up)
-            if ( AttributeContainer.PARAM_SELECTED_ATTRIBUTE_NAMES_LIST in params_IN )
+            attribute_name_list = self.create_attribute_name_list( "", params_IN )
             
-                # we have a list of just the names we are supposed to process.
-                #   Get the list.
-                attribute_name_list = params_IN[ AttributeContainer.PARAM_SELECTED_ATTRIBUTE_NAMES_LIST ]
-                
-                # got anything in it?  If no, go ahead and run through all the
-                #    names.
-                if ( len( attribute_name_list ) < 1 ):
-                    
-                    # nothing in it.  Go ahead and try all of the names.
-                    attribute_name_list = self.create_attribute_name_list( "" )
-                    
-                #-- END check to see if any names passed in --#
-                
-            else:
-            
-                # no selected attributes, run through all names.
-                attribute_name_list = self.create_attribute_name_list( "" )
-                
-            #-- END getting names of attributes to process. --#
+            # store name list
+            self.attribute_names = attribute_name_list
             
             # get values.
             my_values = self.attribute_values

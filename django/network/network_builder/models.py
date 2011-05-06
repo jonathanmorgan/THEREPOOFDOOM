@@ -459,7 +459,7 @@ class Node_Type_Attribute_Value( Dated_Model ):
         string_OUT = ''
 
         # declare variables
-        string_OUT = str( self.id ) + " - " + self.name
+        string_OUT = str( self.id ) + " - " + self.node_type_attribute.label
         
         return string_OUT
         

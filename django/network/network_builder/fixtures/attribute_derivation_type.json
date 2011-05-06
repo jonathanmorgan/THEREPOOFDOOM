@@ -16,5 +16,15 @@
             "name": "Method", 
             "description": "Derived by a method within an object."
         }
+    }, 
+    {
+        "pk": 3, 
+        "model": "network_builder.attribute_derivation_type", 
+        "fields": {
+            "label": "dependent", 
+            "name": "Dependent", 
+            "description": "Dependent on another attribute that is derived (probably set as part of a single method that sets lots of attributes) - does not get derived itself, is created as part of the atttribute on which it depends - in Type, should set derived_from to the name of the attribute that causes this attribute to be populated."
+        }
     }
+
 ]
