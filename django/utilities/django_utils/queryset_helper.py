@@ -1,5 +1,5 @@
 '''
-queryset_iterator and queryset_list_iterator based on:
+queryset_generator and queryset_list_generator based on:
 https://gist.github.com/897894
 '''
 
@@ -11,7 +11,7 @@ https://gist.github.com/897894
 import gc
 import logging
 
-def queryset_iterator( queryset_IN, chunksize_IN = 1000 ):
+def queryset_generator( queryset_IN, chunksize_IN = 1000 ):
 
     """
     Iterate over a Django Queryset ordered by the primary key
@@ -80,10 +80,10 @@ def queryset_iterator( queryset_IN, chunksize_IN = 1000 ):
             
     #-- END check to see if anything in queryset --#
             
-#-- END function queryset_iterator() --#
+#-- END function queryset_generator() --#
 
 
-def queryset_list_iterator(queryset, listsize=10000, chunksize=1000):
+def queryset_list_generator(queryset, listsize=10000, chunksize=1000):
 
     """
     Iterate over a Django Queryset ordered by the primary key and return a
@@ -107,4 +107,4 @@ def queryset_list_iterator(queryset, listsize=10000, chunksize=1000):
             i = 0
             row_list = []
             
-#-- END function queryset_list_iterator() --#
+#-- END function queryset_list_generator() --#

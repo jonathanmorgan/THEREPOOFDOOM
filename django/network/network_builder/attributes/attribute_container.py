@@ -339,7 +339,7 @@ class AttributeContainer( object ):
     #-- END __unicode__() method --#
     
 
-    def create_attribute_name_list( self, prefix_IN, params_IN = None ):
+    def create_attribute_name_list( self, prefix_IN = "", params_IN = None ):
         
         '''
         For exporting a given container's information, returns the list of
