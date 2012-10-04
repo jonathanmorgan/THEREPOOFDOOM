@@ -7,7 +7,7 @@ __author__="jonathanmorgan"
 __date__ ="$Apr 26, 2011 12:31:35 AM$"
 
 if __name__ == "__main__":
-    print "You can not execute NodeAttributeContainer on its own.  Use it as part of another python program."
+    print "You can not execute TieAttributeContainer on its own.  Use it as part of another python program."
 
 #===============================================================================
 # imports (in alphabetical order by package, then by name)
@@ -20,18 +20,18 @@ import logging
 from network_builder.attributes import attribute_container
 
 # other network_builder imports.
-from network_builder.models import Node, Node_Type_Attribute_Value
+from network_builder.models import Tie, Tie_Type_Attribute_Value
 
-class NodeAttributeContainer( attribute_container.AttributeContainer ):
+class TieAttributeContainer( attribute_container.AttributeContainer ):
 
     '''
     Class that extends AttributeContainer, to hold attributes of a specific
-       node.  If you set a type value, will limit to just the attributes for
+       tie.  If you set a type value, will limit to just the attributes for
        the specified type.
        
     Contains the following:
     - dictionary to hold map of string attribute labels to their corresponding
-       network_builder Node_Type_Attribute model instances (in parent -
+       network_builder Tie_Type_Attribute model instances (in parent -
        attribute_definitions).
     - property to hold node we are currently interacting with (node,
        uses parent property attribute_store).
@@ -44,14 +44,14 @@ class NodeAttributeContainer( attribute_container.AttributeContainer ):
        database).
        
     Limitations:
-    - only works for one NodeType at a time.
+    - only works for one TieType at a time.
     - doesn't yet know what to do with attributes that have same label,
         different date ranges (for now, make different attributes for each
         date range).
     
     To use:
-    - 1) Make sure to place a Node_Type model instance in the source_type
-        attribute so an instance with no nested Node can still pull in attribute
+    - 1) Make sure to place a Tie_Type model instance in the source_type
+        attribute so an instance with no nested Tie can still pull in attribute
         definitions.
     - 2) You have to call populate_attribute_definitions() to get attribute
         definitions - there is no magic that does this automatically when you
@@ -101,7 +101,7 @@ class NodeAttributeContainer( attribute_container.AttributeContainer ):
     #---------------------------------------------------------------------------
 
 
-    def get_node( self ):
+    def get_tie( self ):
     
         '''
         Returns attribute source instance stored in internal instance
@@ -115,10 +115,10 @@ class NodeAttributeContainer( attribute_container.AttributeContainer ):
         
         return value_OUT
     
-    #-- END get_node() --#
+    #-- END get_tie() --#
 
 
-    def set_node( self, value_IN ):
+    def set_tie( self, value_IN ):
     
         '''
         Accepts and stores attribute source instance in internal instance
@@ -126,25 +126,25 @@ class NodeAttributeContainer( attribute_container.AttributeContainer ):
         ''' 
         
         # define variables
-        my_node_type = None
-        my_node_type_label = ""
+        my_tie_type = None
+        my_tie_type_label = ""
         
         # set value
         self.attribute_store = value_IN
         
-        # set type from node.  Got a type?
-        my_node_type = value_IN.node_type
-        if ( my_node_type ):
+        # set type from tie.  Got a type?
+        my_tie_type = value_IN.tie_type
+        if ( my_tie_type ):
             
-            # got a node type.  Store it in store_type.
-            self.store_type = my_node_type                
+            # got a type.  Store it in store_type.
+            self.store_type = my_tie_type                
             
-        #-- END check to see if node type. --#
+        #-- END check to see if tie type. --#
     
     #-- END set_node() --#
 
 
-    node = property( get_node, set_node )
+    node = property( get_tie, set_tie )
 
 
     #============================================================================
@@ -181,29 +181,29 @@ class NodeAttributeContainer( attribute_container.AttributeContainer ):
         status_OUT = "Success!"
         
         # declare variables
-        my_node = None
-        my_node_attribute_values = None
+        my_tie = None
+        my_tie_attribute_values = None
         current_attribute_value = None
         current_attribute = None
         current_attribute_label = None
         current_value = None
         
-        # get node
-        my_node = self.node
+        # get tie
+        my_tie = self.tie
         
-        # got node?
-        if ( my_node ):
+        # got tie?
+        if ( my_tie ):
             
-            # got a node.  Pull in attribute values for the node's type.
-            my_node_attribute_values = my_node.node_type_attribute_value_set.all()
+            # got a tie.  Pull in attribute values for the tie's type.
+            my_tie_attribute_values = my_tie.tie_type_attribute_value_set.all()
             
             #logging.debug( "*** values in database: " + str( my_node_attribute_values.count() ) + " ***" )
             
             # loop over values, adding each to the attribute_values dictionary.
-            for current_attribute_value in my_node_attribute_values:
+            for current_attribute_value in my_tie_attribute_values:
                 
                 # get attribute label.
-                current_attribute = current_attribute_value.node_type_attribute
+                current_attribute = current_attribute_value.tie_type_attribute
                 current_attribute_label = current_attribute.label
                 
                 # get current value.
@@ -212,25 +212,25 @@ class NodeAttributeContainer( attribute_container.AttributeContainer ):
                 # store.
                 self.set_attribute_value( current_attribute_label, current_value )
                 
-            #-- END loop over attribute values for current node. --#
+            #-- END loop over attribute values for current tie. --#
             
             # set the loaded flag to true.
             self.attrs_loaded = True
            
         else:
             
-            # error - need a node to populate stuff.
-            status_OUT = "ERROR - can't load attribute values without a source node."
+            # error - need a tie to populate stuff.
+            status_OUT = "ERROR - can't load attribute values without a source tie."
         
-        #-- END check to see if we have a node. --#
+        #-- END check to see if we have a tie. --#
         
     #-- END method load_attribute_values() --#
     
     
-    def load_node( self, params_IN ):
+    def load_tie( self, params_IN ):
     
         '''
-        Accepts set of parameters that should include an original ID and a node
+        Accepts set of parameters that should include an original ID and a tie
            type.  Uses those to search for and load a Node into this instance.
            If can't find a matching node, returns an error message describing the
            problem.
