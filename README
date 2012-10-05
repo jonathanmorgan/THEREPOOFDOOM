@@ -1,5 +1,9 @@
 THEREPOOFDOOM!!!
-This is going to be great.  More details to come.
+
+Components:
+- network builder
+- dict_helper
+- django_utils, including query filter class and queryset helper class.
 
 =================================================================================
 Installing Network Builder
