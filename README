@@ -8,9 +8,19 @@ Installing Network Builder
 For now, just have classes/models that hold network information pre-query.
 
 To install:
-- install and configure django to talk with a database (http://docs.djangoproject.com/en/dev/intro/tutorial01/).
+- before you do anything else, if you aren't familiar with django, it is good to just run through the django tutorial, to get an idea how it all works, what it takes to configure django to talk with a database (http://docs.djangoproject.com/en/dev/intro/tutorial01/).
 - grab the django folder from this repo.
-- install and configure the network site (settings-anon.py has a barebones install except for your database information), or install the network_builder application in your existing site.
-- use manage.py to load the attribute types fixtures (python manage.py loaddata attribute_type.json).
-- use manage.py to load the attribute derivation types fixtures (python manage.py loaddata attribute_derivation_type.json)
-- play (and hope it doesn't break!).
+- install and configure the network django application (in the network folder, settings-anon.py has a barebones install except for your database information), or install the network_builder application in your existing site.
+- Once you either make a fresh install and configure settings.py or install the application in an existing django install, run "python manage.py syncdb" to build database tables:
+
+    python manage.py syncdb
+
+- use manage.py to load the attribute types fixtures:
+
+    python manage.py loaddata attribute_type.json
+
+- use manage.py to load the attribute derivation types fixtures:
+
+    python manage.py loaddata attribute_derivation_type.json
+
+- play (and hope it doesn't break!).  By play, I mean build programs that create nodes, associate attributes to them, and create ties of multiple types between them, then use that data for network analysis!  Eventually, planning on building an output framework so that networks in this database can be easily output to common file formats for social network analysis.  For now, though, you'll have to write your output yourself.
