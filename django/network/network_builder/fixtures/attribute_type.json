@@ -5,7 +5,9 @@
         "fields": {
         	"label" : "text",
             "name": "Text",
-            "description": "Any text value."
+            "description": "Any text value.",
+            "create_date" : "2012-10-12 18:02:00",
+            "last_update" : "2012-10-12 18:02:00"
         }
     }, 
     {
@@ -14,7 +16,9 @@
         "fields": {
             "label": "date", 
             "name": "Date", 
-            "description": "Just a date."
+            "description": "Just a date.",
+            "create_date" : "2012-10-12 18:02:00",
+            "last_update" : "2012-10-12 18:02:00"
         }
     }, 
     {
@@ -23,7 +27,9 @@
         "fields": {
             "label": "time", 
             "name": "Time", 
-            "description": "Just a time."
+            "description": "Just a time.",
+            "create_date" : "2012-10-12 18:02:00",
+            "last_update" : "2012-10-12 18:02:00"
         }
     }, 
     {
@@ -32,7 +38,9 @@
         "fields": {
             "label": "datetime", 
             "name": "Date-Time", 
-            "description": "Both a date and a time."
+            "description": "Both a date and a time.",
+            "create_date" : "2012-10-12 18:02:00",
+            "last_update" : "2012-10-12 18:02:00"
         }
     }, 
     {
@@ -41,7 +49,9 @@
         "fields": {
             "label": "integer", 
             "name": "Integer", 
-            "description": "Integer, positive or negative."
+            "description": "Integer, positive or negative.",
+            "create_date" : "2012-10-12 18:02:00",
+            "last_update" : "2012-10-12 18:02:00"
         }
     }, 
     {
@@ -50,7 +60,9 @@
         "fields": {
             "label": "float", 
             "name": "Float", 
-            "description": "Decimal number."
+            "description": "Decimal number.",
+            "create_date" : "2012-10-12 18:02:00",
+            "last_update" : "2012-10-12 18:02:00"
         }
     }, 
     {
@@ -59,7 +71,9 @@
         "fields": {
             "label": "boolean", 
             "name": "Boolean", 
-            "description": "Boolean - true or false."
+            "description": "Boolean - true or false.",
+            "create_date" : "2012-10-12 18:02:00",
+            "last_update" : "2012-10-12 18:02:00"
         }
     },
     {
@@ -68,7 +82,9 @@
         "fields": {
             "label": "pickle_jar", 
             "name": "Pickle Jar", 
-            "description": "Pickled data.  Could be anything.  I do love pickles."
+            "description": "Pickled data.  Could be anything.  I do love pickles.",
+            "create_date" : "2012-10-12 18:02:00",
+            "last_update" : "2012-10-12 18:02:00"
         }
     }
 ]

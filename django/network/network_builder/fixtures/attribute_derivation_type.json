@@ -5,7 +5,9 @@
         "fields": {
         	"label" : "property",
             "name": "Property",
-            "description": "Derived by grabbing the value of a property within an object."
+            "description": "Derived by grabbing the value of a property within an object.",
+            "create_date" : "2012-10-12 18:02:00",
+            "last_update" : "2012-10-12 18:02:00"
         }
     }, 
     {
@@ -14,7 +16,9 @@
         "fields": {
             "label": "method", 
             "name": "Method", 
-            "description": "Derived by a method within an object."
+            "description": "Derived by a method within an object.",
+            "create_date" : "2012-10-12 18:02:00",
+            "last_update" : "2012-10-12 18:02:00"
         }
     }, 
     {
@@ -23,7 +27,9 @@
         "fields": {
             "label": "dependent", 
             "name": "Dependent", 
-            "description": "Dependent on another attribute that is derived (probably set as part of a single method that sets lots of attributes) - does not get derived itself, is created as part of the atttribute on which it depends - in Type, should set derived_from to the name of the attribute that causes this attribute to be populated."
+            "description": "Dependent on another attribute that is derived (probably set as part of a single method that sets lots of attributes) - does not get derived itself, is created as part of the atttribute on which it depends - in Type, should set derived_from to the name of the attribute that causes this attribute to be populated.",
+            "create_date" : "2012-10-12 18:02:00",
+            "last_update" : "2012-10-12 18:02:00"
         }
     }
 
