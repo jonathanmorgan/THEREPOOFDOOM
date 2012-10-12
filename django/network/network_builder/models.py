@@ -16,8 +16,69 @@ ALTER TABLE `jonE2`.`network_builder_node_type_attribute` ADD INDEX `network_bui
 #===============================================================================
 
 
+# Dated_Model abstract model
+class Dated_Model( models.Model ):
+
+    '''
+    Dated_Model implements a date field and date range start and end date
+       fields.  Not sure which of these will be needed where, but will make
+       node, tie, and node and tie attribute values classes extend so each
+       of these can be dated, and so dates can be used to pull in nodes,
+       ties, or attribute values for a date or a date range.
+    '''
+
+    date = models.DateTimeField( blank = True, null = True )
+    date_range_start = models.DateTimeField( blank = True, null = True )
+    date_range_end = models.DateTimeField( blank = True, null = True )
+    create_date = models.DateTimeField( auto_now_add = True )
+    last_update = models.DateTimeField( auto_now = True )
+
+    # meta class so we know this is an abstract class.
+    class Meta:
+        abstract = True
+
+    #----------------------------------------------------------------------
+    # methods
+    #----------------------------------------------------------------------
+
+
+    def __unicode__( self ):
+        
+        # return reference
+        string_OUT = ''
+        prefix = ""
+        
+        string_OUT = self.id
+        prefix = " - "
+        
+        if ( self.date ):
+            string_OUT = prefix + "date: " + self.date.strftime( "%b %d, %Y" )
+            prefix = ", "
+            
+        #-- END check for date field --#
+            
+        if ( self.range_start_date ):
+            string_OUT = prefix + "range start date: " + self.range_start_date.strftime( "%b %d, %Y" )
+            prefix = ", "
+            
+        #-- END check for range_start_date field --#
+
+        if ( self.range_end_date ):
+            string_OUT = prefix + "range end date: " + self.range_end_date.strftime( "%b %d, %Y" )
+            prefix = ", "
+            
+        #-- END check for range_end_date field --#
+
+        return string_OUT
+        
+    #-- END __unicode__() method --#
+        
+
+#= END Dated_Model Abstract Model ==============================================
+
+
 # Labeled_Model abstract model
-class Labeled_Model( models.Model ):
+class Labeled_Model( Dated_Model ):
 
     '''
     Labeled_Model implements a label (intended to have no space), a name
@@ -103,9 +164,12 @@ class Name_Value_Pair_Model( Labeled_Model ):
 class Derived_Attribute_Model( Labeled_Model ):
 
     '''
-    Labeled_Model implements a label (intended to have no space), a name
-       field, and a description field.  Many models have these fields
-       together, so figured I'd just plunk them all in one place.
+    Derived_Attribute_Model extends Labeled_Model, adding an attribute type,
+       an attribute derivation type, and a derived_from string.  Not sure what
+       exactly this does now, but I think it is intended to add specifications
+       on HOW to derive an attribute value to an attribute's definition, so you
+       can add derived attributes to a node just by adding a specification and
+       re-running the program that generates attribute values.
     '''
 
     #----------------------------------------------------------------------
@@ -171,67 +235,6 @@ class Derived_Attribute_Model( Labeled_Model ):
 #= END Derived_Model Abstract Model ============================================
 
 
-# Dated_Model abstract model
-class Dated_Model( models.Model ):
-
-    '''
-    Dated_Model implements a date field and date range start and end date
-       fields.  Not sure which of these will be needed where, but will make
-       node, tie, and node and tie attribute values classes extend so each
-       of these can be dated, and so dates can be used to pull in nodes,
-       ties, or attribute values for a date or a date range.
-    '''
-
-    date = models.DateTimeField( blank = True, null = True )
-    date_range_start = models.DateTimeField( blank = True, null = True )
-    date_range_end = models.DateTimeField( blank = True, null = True )
-    create_date = models.DateTimeField( auto_now_add = True )
-    last_update = models.DateTimeField( auto_now = True )
-
-    # meta class so we know this is an abstract class.
-    class Meta:
-        abstract = True
-
-    #----------------------------------------------------------------------
-    # methods
-    #----------------------------------------------------------------------
-
-
-    def __unicode__( self ):
-        
-        # return reference
-        string_OUT = ''
-        prefix = ""
-        
-        string_OUT = self.id
-        prefix = " - "
-        
-        if ( self.date ):
-            string_OUT = prefix + "date: " + self.date.strftime( "%b %d, %Y" )
-            prefix = ", "
-            
-        #-- END check for date field --#
-            
-        if ( self.range_start_date ):
-            string_OUT = prefix + "range start date: " + self.range_start_date.strftime( "%b %d, %Y" )
-            prefix = ", "
-            
-        #-- END check for range_start_date field --#
-
-        if ( self.range_end_date ):
-            string_OUT = prefix + "range end date: " + self.range_end_date.strftime( "%b %d, %Y" )
-            prefix = ", "
-            
-        #-- END check for range_end_date field --#
-
-        return string_OUT
-        
-    #-- END __unicode__() method --#
-        
-
-#= END Dated_Model Abstract Model ==============================================
-
-
 #===============================================================================
 # Shared Models
 #===============================================================================
@@ -262,6 +265,8 @@ class Attribute_Derivation_Type( Labeled_Model ):
        external source.  Used in combination with the derived_from field on the
        model that has a derived attribute type (should put the name of the
        property or method in that field).
+    This model is referenced by Derived_Attribute_Type, used to hold types of
+       attributes.
     '''
 
 #-- END Attribute_Type Model --#
@@ -430,6 +435,71 @@ class Node( Dated_Model ):
     #-- END method __unicode__() --#
 
 #-- END Node Model --#
+
+
+class Node_Attribute_Value ( Name_Value_Pair_Model ):
+    
+    '''
+    Model Node_Attribute_Value holds attributes of nodes that are independent
+       of node type.  So, can be just about anything, and more useful in
+       situations where you don't have nodes of different types.
+    '''
+
+    
+    #----------------------------------------------------------------------
+    # fields
+    #----------------------------------------------------------------------
+    
+    
+    node = models.ForeignKey( Node )
+    
+
+    #----------------------------------------------------------------------
+    # methods
+    #----------------------------------------------------------------------
+
+
+    def __unicode__( self ):
+
+        # return reference
+        string_OUT = ''
+
+        # declare variables
+        string_OUT = str( self.id )
+        
+        # got a node? (We'd better!)
+        if ( self.node ):
+        
+            # yes.  Output node ID.
+            string_OUT += " ( node: " + str( self.node.id ) + " )"
+            
+        #-- END check to see if associated node. --#
+        
+        # add hyphen to separate IDs from attribute information.
+        string_OUT = str( self.id ) + ' - '
+
+        # got a name?
+        if ( self.name ):
+            
+            # yes - output name of attribute.
+            string_OUT += self.name + ": "
+
+        #-- END check to see if name --#
+        
+        # got a value?
+        if ( self.value ):
+            
+            # yes - output it.
+            string_OUT += self.value
+            
+        #-- END check to see if value --#
+        
+        return string_OUT
+        
+    #-- END method __unicode__() --#
+
+
+#-- END Model Node_Attribute_Value --#
 
 
 # Node_Type_Attribute_Value - valid values for a given type.
@@ -659,6 +729,71 @@ class Tie( Dated_Model ):
     #-- END method __unicode__() --#
 
 #= END Tie Model ========================================================
+
+
+class Tie_Attribute_Value ( Name_Value_Pair_Model ):
+    
+    '''
+    Model Tie_Attribute_Value holds attributes of ties that are independent
+       of tie type.  So, can be just about anything, and more useful in
+       situations where you don't have ties of different types.
+    '''
+
+    
+    #----------------------------------------------------------------------
+    # fields
+    #----------------------------------------------------------------------
+    
+    
+    tie = models.ForeignKey( Tie )
+    
+
+    #----------------------------------------------------------------------
+    # methods
+    #----------------------------------------------------------------------
+
+
+    def __unicode__( self ):
+
+        # return reference
+        string_OUT = ''
+
+        # declare variables
+        string_OUT = str( self.id )
+        
+        # got a node? (We'd better!)
+        if ( self.tie ):
+        
+            # yes.  Output node ID.
+            string_OUT += " ( node: " + str( self.tie.id ) + " )"
+            
+        #-- END check to see if associated node. --#
+        
+        # add hyphen to separate IDs from attribute information.
+        string_OUT = str( self.id ) + ' - '
+
+        # got a name?
+        if ( self.name ):
+            
+            # yes - output name of attribute.
+            string_OUT += self.name + ": "
+
+        #-- END check to see if name --#
+        
+        # got a value?
+        if ( self.value ):
+            
+            # yes - output it.
+            string_OUT += self.value
+            
+        #-- END check to see if value --#
+        
+        return string_OUT
+        
+    #-- END method __unicode__() --#
+
+
+#-- END Model Tie_Attribute_Value --#
 
 
 # Tie_Type_Attribute_Value - valid values for a given type.
