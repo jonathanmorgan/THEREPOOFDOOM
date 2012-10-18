@@ -409,7 +409,7 @@ class Node( Dated_Model ):
     # fields
     #----------------------------------------------------------------------
 
-    node_type = models.ForeignKey( Node_Type )
+    node_type = models.ForeignKey( Node_Type, blank = True, null = True )
     parent_node = models.ForeignKey( "Node", blank = True, null = True ) # (optional - if present, then this is a group as well as a node)
     original_id = models.CharField( max_length = 255, blank = True, null = True )
     original_table = models.CharField( max_length = 255, blank = True, null = True )
@@ -700,7 +700,7 @@ class Tie( Dated_Model ):
     # fields
     #----------------------------------------------------------------------
 
-    tie_type = models.ForeignKey( Tie_Type )
+    tie_type = models.ForeignKey( Tie_Type, blank = True, null = True )
     original_id = models.CharField( max_length = 255, blank = True, null = True )
     original_table = models.CharField( max_length = 255, blank = True, null = True )
     description = models.TextField( blank = True, null = True )
