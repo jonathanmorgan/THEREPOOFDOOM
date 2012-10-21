@@ -1,0 +1,3 @@
+[submodule "django/network/network_builder"]
+	path = django/network/network_builder
+	url = git@github.com:jonathanmorgan/network_builder.git
