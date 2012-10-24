@@ -1,6 +1,0 @@
-[submodule "django/network/network_builder"]
-	path = django/network/network_builder
-	url = git@github.com:jonathanmorgan/network_builder.git
-[submodule "django/utilities"]
-	path = django/utilities
-	url = git@github.com:jonathanmorgan/python_utilities.git
