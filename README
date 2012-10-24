@@ -4,8 +4,7 @@ This has been broken up into the network_builder and python_utilities projects:
 - https://github.com/jonathanmorgan/network_builder
 - https://github.com/jonathanmorgan/python_utilities
 
-They are submodules in this repo, so you can use this repo, but the only unique thing here is a basic django install, and going forward, that will be less useful as both network_builder/python_utilities and django evolve (it is already not the current standard django site installation).
-So, I'd recommend not using this repository and using network_builder and python_utilities separately.
+Ths REPO is still here in case someone was using it and is confused why a pull destroyed it, but it is now empty.  To use network_builder and utilities, pull in the code in the repos above instead.
 
 That said, here is the old README:
 
